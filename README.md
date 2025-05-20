@@ -5,7 +5,7 @@
 
 ## 기본세팅
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/META9999/MeTA9-Library/refs/heads/main/main.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MeTA9999butseason2/MetA-Library-New/refs/heads/main/main.lua"))()
 ```
 코드 해석 : main.lua의 코드를 불러옵니다
 
