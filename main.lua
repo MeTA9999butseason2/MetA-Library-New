@@ -1,7 +1,42 @@
+
+--[[
+    This version is compatible with loadstring execution.
+    - Uses gethui() if available, otherwise falls back to CoreGui.
+    - Avoids direct assignment to game.CoreGui (which may error in some environments).
+    - No global variables are set.
+--]]
+
 local Library = {}
+
+-- Helper to get a safe parent for GUIs (for loadstring compatibility)
+local function getSafeParent()
+    if typeof(gethui) == "function" then
+        local s, res = pcall(gethui)
+        if s and typeof(res) == "Instance" and res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui") then
+            return res
+        end
+    end
+    -- Fallback to CoreGui if gethui is not available
+    local s, cg = pcall(function() return game:GetService("CoreGui") end)
+    if s and cg then
+        return cg
+    end
+    -- Fallback to PlayerGui if CoreGui is not accessible
+    local plr = game:GetService("Players").LocalPlayer
+    if plr and plr:FindFirstChildOfClass("PlayerGui") then
+        return plr.PlayerGui
+    end
+    -- As a last resort, parent to workspace (not recommended)
+    return workspace
+end
 
 function Library:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = getSafeParent()
+
     local Main = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local TabHolder = Instance.new("Frame")
@@ -55,20 +90,16 @@ function Library:CreateWindow(title)
     TweenService:Create(IntroTitle, tweenInfo, {TextTransparency = 0}):Play()
     TweenService:Create(IntroSubtitle, tweenInfo, {TextTransparency = 0}):Play()
     
-    task.delay(2, function()
+    task.spawn(function()
+        task.wait(2)
         local fadeOut = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         TweenService:Create(IntroFrame, fadeOut, {BackgroundTransparency = 1}):Play()
         TweenService:Create(IntroTitle, fadeOut, {TextTransparency = 1}):Play()
         TweenService:Create(IntroSubtitle, fadeOut, {TextTransparency = 1}):Play()
-        
-        task.delay(0.5, function()
-            IntroFrame:Destroy()
-            Main.Visible = true
-        end)
+        task.wait(0.5)
+        IntroFrame:Destroy()
+        Main.Visible = true
     end)
-    
-    ScreenGui.Parent = game.CoreGui
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
     Main.Name = "Main"
     Main.Parent = ScreenGui
@@ -78,7 +109,7 @@ function Library:CreateWindow(title)
     Main.Position = UDim2.new(0.5, -250, 0.5, -150)
     Main.Size = UDim2.new(0, 500, 0, 300)
     Main.Active = true
-    Main.Draggable = true
+    pcall(function() Main.Draggable = true end) -- Draggable may error in some environments
     Main.Visible = false
     
     Title.Name = "Title" 
@@ -221,11 +252,14 @@ function Library:CreateWindow(title)
             duration = duration or 3
             
             local NotifyGui = Instance.new("ScreenGui")
+            NotifyGui.Name = "LibraryNotify_" .. tostring(math.random(100000,999999))
+            NotifyGui.ResetOnSpawn = false
+            NotifyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            NotifyGui.Parent = getSafeParent()
+            
             local NotifyFrame = Instance.new("Frame")
             local Title = Instance.new("TextLabel")
             local Message = Instance.new("TextLabel")
-            
-            NotifyGui.Parent = game.CoreGui
             
             NotifyFrame.Name = "NotifyFrame"
             NotifyFrame.Parent = NotifyGui
@@ -268,12 +302,12 @@ function Library:CreateWindow(title)
             })
             slideIn:Play()
             
-            task.delay(duration, function()
+            task.spawn(function()
+                task.wait(duration)
                 local slideOut = TweenService:Create(NotifyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
                     Position = UDim2.new(1, 5, 0.8, 0)
                 })
                 slideOut:Play()
-                
                 slideOut.Completed:Connect(function()
                     NotifyGui:Destroy()
                 end)
@@ -429,6 +463,7 @@ function Library:CreateWindow(title)
             Value.TextYAlignment = Enum.TextYAlignment.Center
             
             local dragging = false
+            local UserInputService = game:GetService("UserInputService")
             
             SliderButton.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -436,15 +471,15 @@ function Library:CreateWindow(title)
                 end
             end)
             
-            game:GetService("UserInputService").InputEnded:Connect(function(input)
+            UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     dragging = false
                 end
             end)
             
-            game:GetService("UserInputService").InputChanged:Connect(function(input)
+            UserInputService.InputChanged:Connect(function(input)
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+                    local mousePos = UserInputService:GetMouseLocation()
                     local relativePos = mousePos.X - SliderButton.AbsolutePosition.X
                     local percentage = math.clamp(relativePos / SliderButton.AbsoluteSize.X, 0, 1)
                     local value = math.floor(min + ((max - min) * percentage))
