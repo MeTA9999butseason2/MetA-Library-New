@@ -754,4 +754,3 @@ function Library:CreateWindow(title)
 end
 -- 마지막 줄에 추가
 return Library
--- 사용 예시
