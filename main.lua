@@ -634,7 +634,7 @@ function Library:CreateWindow(title)
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
-            -- 간단한 코드 자동완성 기능
+            -- 코드 자동완성 기능
             local keywords = {
             "function", "local", "end", "if", "then", "elseif", "else", "for", "in", "do", "while", "repeat", "until", "return", "break", "and", "or", "not", "true", "false", "nil"
             }
@@ -658,8 +658,13 @@ function Library:CreateWindow(title)
 
             local UserInputService = game:GetService("UserInputService")
 
-            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            local text = TextBox.Text
+            -- 자동완성 표시: TextBox의 Focused 상태에서만 동작
+            local function updateSuggestion()
+            if not TextBox:IsFocused() then
+                SuggestionBox.Visible = false
+                return
+            end
+            local text = TextBox.Text:sub(1, TextBox.CursorPosition - 1)
             local lastWord = getLastWord(text)
             if lastWord and #lastWord > 0 then
                 local found = nil
@@ -678,20 +683,26 @@ function Library:CreateWindow(title)
             else
                 SuggestionBox.Visible = false
             end
-            end)
+            end
 
+            TextBox:GetPropertyChangedSignal("Text"):Connect(updateSuggestion)
+            TextBox:GetPropertyChangedSignal("CursorPosition"):Connect(updateSuggestion)
+            TextBox.Focused:Connect(updateSuggestion)
             TextBox.FocusLost:Connect(function()
             SuggestionBox.Visible = false
             end)
 
-            TextBox.InputBegan:Connect(function(input)
-            if SuggestionBox.Visible and input.KeyCode == Enum.KeyCode.Tab then
-                local text = TextBox.Text
+            -- Tab 키로 자동완성 적용
+            UserInputService.InputBegan:Connect(function(input, processed)
+            if processed then return end
+            if TextBox:IsFocused() and SuggestionBox.Visible and input.KeyCode == Enum.KeyCode.Tab then
+                local text = TextBox.Text:sub(1, TextBox.CursorPosition - 1)
                 local lastWord = getLastWord(text)
                 if lastWord then
-                local before = text:sub(1, #text - #lastWord)
-                TextBox.Text = before .. SuggestionBox.Text
-                TextBox.CursorPosition = #TextBox.Text + 1
+                local before = TextBox.Text:sub(1, TextBox.CursorPosition - #lastWord - 1)
+                local after = TextBox.Text:sub(TextBox.CursorPosition)
+                TextBox.Text = before .. SuggestionBox.Text .. after
+                TextBox.CursorPosition = #before + #SuggestionBox.Text + 1
                 SuggestionBox.Visible = false
                 end
             end
@@ -704,14 +715,14 @@ function Library:CreateWindow(title)
                 local ok, result = pcall(func)
                 if ok then
                 OutputLabel.Text = "실행 성공"
-                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120) -- 성공: 초록색
+                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
                 else
                 OutputLabel.Text = "오류: " .. tostring(result)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80) -- 런타임 오류: 빨간색
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
                 end
             else
                 OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80) -- 컴파일 오류: 주황색
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
             end
             end)
 
@@ -719,7 +730,6 @@ function Library:CreateWindow(title)
         end
 
         return TabFunctions
-        end
     
     return Window
 end
