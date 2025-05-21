@@ -571,6 +571,85 @@ function Library:CreateWindow(title)
             
             return ToggleFrame
         end
+        function TabFunctions:AddLuaExecutor()
+            local ExecutorFrame = Instance.new("Frame")
+            ExecutorFrame.Name = "LuaExecutor"
+            ExecutorFrame.Parent = Content
+            ExecutorFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ExecutorFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ExecutorFrame.BorderSizePixel = 1
+            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 120)
+            ExecutorFrame.Position = UDim2.new(0.025, 0, 0, 0)
+
+            local ExecutorCorner = Instance.new("UICorner")
+            ExecutorCorner.Parent = ExecutorFrame
+            ExecutorCorner.CornerRadius = UDim.new(0, 6)
+
+            local TextBox = Instance.new("TextBox")
+            TextBox.Parent = ExecutorFrame
+            TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            TextBox.BorderSizePixel = 1
+            TextBox.Position = UDim2.new(0, 8, 0, 8)
+            TextBox.Size = UDim2.new(1, -16, 0, 70)
+            TextBox.Font = Enum.Font.Code
+            TextBox.Text = "-- 여기에 Lua 코드를 입력하세요"
+            TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.TextSize = 13
+            TextBox.TextXAlignment = Enum.TextXAlignment.Left
+            TextBox.TextYAlignment = Enum.TextYAlignment.Top
+            TextBox.ClearTextOnFocus = false
+            TextBox.MultiLine = true
+
+            local TextBoxCorner = Instance.new("UICorner")
+            TextBoxCorner.Parent = TextBox
+            TextBoxCorner.CornerRadius = UDim.new(0, 4)
+
+            local ExecuteButton = Instance.new("TextButton")
+            ExecuteButton.Parent = ExecutorFrame
+            ExecuteButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+            ExecuteButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ExecuteButton.BorderSizePixel = 1
+            ExecuteButton.Position = UDim2.new(1, -88, 1, -36)
+            ExecuteButton.Size = UDim2.new(0, 80, 0, 28)
+            ExecuteButton.Font = Enum.Font.GothamBold
+            ExecuteButton.Text = "실행"
+            ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ExecuteButton.TextSize = 13
+
+            local ExecuteButtonCorner = Instance.new("UICorner")
+            ExecuteButtonCorner.Parent = ExecuteButton
+            ExecuteButtonCorner.CornerRadius = UDim.new(0, 4)
+
+            local OutputLabel = Instance.new("TextLabel")
+            OutputLabel.Parent = ExecutorFrame
+            OutputLabel.BackgroundTransparency = 1
+            OutputLabel.Position = UDim2.new(0, 8, 1, -60)
+            OutputLabel.Size = UDim2.new(1, -100, 0, 20)
+            OutputLabel.Font = Enum.Font.Gotham
+            OutputLabel.Text = ""
+            OutputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            OutputLabel.TextSize = 12
+            OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
+            OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+            ExecuteButton.MouseButton1Click:Connect(function()
+                local code = TextBox.Text
+                local func, err = loadstring(code)
+                if func then
+                    local ok, result = pcall(func)
+                    if ok then
+                        OutputLabel.Text = "실행 성공"
+                    else
+                        OutputLabel.Text = "오류: " .. tostring(result)
+                    end
+                else
+                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
+                end
+            end)
+
+            return ExecutorFrame
+        end
         
         return TabFunctions
     end
@@ -579,3 +658,6 @@ function Library:CreateWindow(title)
 end
 -- 마지막 줄에 추가
 return Library
+-- 사용 예시
+
+
