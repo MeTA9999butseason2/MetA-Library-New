@@ -640,11 +640,14 @@ function Library:CreateWindow(title)
                     local ok, result = pcall(func)
                     if ok then
                         OutputLabel.Text = "실행 성공"
+                        OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120) -- 성공: 초록색
                     else
                         OutputLabel.Text = "오류: " .. tostring(result)
+                        OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80) -- 런타임 오류: 빨간색
                     end
                 else
                     OutputLabel.Text = "컴파일 오류: " .. tostring(err)
+                    OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80) -- 컴파일 오류: 주황색
                 end
             end)
 
@@ -659,4 +662,3 @@ end
 -- 마지막 줄에 추가
 return Library
 -- 사용 예시
-
