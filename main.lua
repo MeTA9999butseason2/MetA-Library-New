@@ -634,6 +634,69 @@ function Library:CreateWindow(title)
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
+            -- 간단한 코드 자동완성 기능
+            local keywords = {
+            "function", "local", "end", "if", "then", "elseif", "else", "for", "in", "do", "while", "repeat", "until", "return", "break", "and", "or", "not", "true", "false", "nil"
+            }
+            local function getLastWord(str)
+            return str:match("([%w_]+)$")
+            end
+
+            local SuggestionBox = Instance.new("TextLabel")
+            SuggestionBox.Parent = ExecutorFrame
+            SuggestionBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            SuggestionBox.BorderColor3 = Color3.fromRGB(80, 80, 80)
+            SuggestionBox.BorderSizePixel = 1
+            SuggestionBox.Position = UDim2.new(0, 10, 0, 80)
+            SuggestionBox.Size = UDim2.new(0, 120, 0, 18)
+            SuggestionBox.Font = Enum.Font.Code
+            SuggestionBox.Text = ""
+            SuggestionBox.TextColor3 = Color3.fromRGB(180, 220, 255)
+            SuggestionBox.TextSize = 12
+            SuggestionBox.TextXAlignment = Enum.TextXAlignment.Left
+            SuggestionBox.Visible = false
+
+            local UserInputService = game:GetService("UserInputService")
+
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+            local text = TextBox.Text
+            local lastWord = getLastWord(text)
+            if lastWord and #lastWord > 0 then
+                local found = nil
+                for _, kw in ipairs(keywords) do
+                if kw:sub(1, #lastWord) == lastWord and kw ~= lastWord then
+                    found = kw
+                    break
+                end
+                end
+                if found then
+                SuggestionBox.Text = found
+                SuggestionBox.Visible = true
+                else
+                SuggestionBox.Visible = false
+                end
+            else
+                SuggestionBox.Visible = false
+            end
+            end)
+
+            TextBox.FocusLost:Connect(function()
+            SuggestionBox.Visible = false
+            end)
+
+            TextBox.InputBegan:Connect(function(input)
+            if SuggestionBox.Visible and input.KeyCode == Enum.KeyCode.Tab then
+                local text = TextBox.Text
+                local lastWord = getLastWord(text)
+                if lastWord then
+                local before = text:sub(1, #text - #lastWord)
+                TextBox.Text = before .. SuggestionBox.Text
+                TextBox.CursorPosition = #TextBox.Text + 1
+                SuggestionBox.Visible = false
+                end
+            end
+            end)
+
             ExecuteButton.MouseButton1Click:Connect(function()
             local code = TextBox.Text
             local func, err = loadstring(code)
@@ -654,9 +717,9 @@ function Library:CreateWindow(title)
 
             return ExecutorFrame
         end
-        
+
         return TabFunctions
-    end
+        end
     
     return Window
 end
