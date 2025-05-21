@@ -1,35 +1,39 @@
-
---[[
-    This version is compatible with loadstring execution.
-    - Uses gethui() if available, otherwise falls back to CoreGui.
-    - Avoids direct assignment to game.CoreGui (which may error in some environments).
-    - No global variables are set.
---]]
+-- Safe Roblox environment check
+local ok, game = pcall(function() return game end)
+if not ok or not game or not game.GetService then
+    return {}
+end
 
 local Library = {}
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
-    if typeof(gethui) == "function" then
+    local parent
+    if typeof and typeof(gethui) == "function" then
         local s, res = pcall(gethui)
-        if s and typeof(res) == "Instance" and res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui") then
-            return res
+        if s and typeof(res) == "Instance" and (res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui")) then
+            parent = res
         end
     end
-    -- Fallback to CoreGui if gethui is not available
-    local s, cg = pcall(function() return game:GetService("CoreGui") end)
-    if s and cg then
-        return cg
+    if not parent then
+        local s, cg = pcall(function() return game:GetService("CoreGui") end)
+        if s and cg then
+            parent = cg
+        end
     end
-    -- Fallback to PlayerGui if CoreGui is not accessible
-    local plr = game:GetService("Players").LocalPlayer
-    if plr and plr:FindFirstChildOfClass("PlayerGui") then
-        return plr.PlayerGui
+    if not parent then
+        local plr = game:GetService("Players").LocalPlayer
+        if plr and plr:FindFirstChildOfClass("PlayerGui") then
+            parent = plr.PlayerGui
+        end
     end
-    -- As a last resort, parent to workspace (not recommended)
-    return workspace
+    if not parent then
+        parent = workspace
+    end
+    return parent
 end
 
+-- ... (여기에 기존 Library:CreateWindow 함수 이하 전체 코드 붙여넣기) ...
 function Library:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
@@ -573,3 +577,5 @@ function Library:CreateWindow(title)
     
     return Window
 end
+-- 마지막 줄에 추가
+return Library
