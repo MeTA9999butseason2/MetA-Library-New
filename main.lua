@@ -636,13 +636,14 @@ function Library:CreateWindow(title)
             if func then
                 local ok, result = pcall(func)
                 if ok then
-                OutputLabel.Text = "Success"
+                    OutputLabel.Text = "<font color=\"rgb(80,200,120)\">Success</font>"
                 else
-                OutputLabel.Text = "Error: " .. tostring(result)
+                    OutputLabel.Text = "<font color=\"rgb(255,80,80)\">Error: " .. tostring(result) .. "</font>"
                 end
             else
-                OutputLabel.Text = "Compile error: " .. tostring(err)
+                OutputLabel.Text = "<font color=\"rgb(255,180,80)\">Compile error: " .. tostring(err) .. "</font>"
             end
+            OutputLabel.RichText = true
             end)
 
             return ExecutorFrame
