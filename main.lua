@@ -529,7 +529,7 @@ function Library:CreateWindow(title)
             
             ToggleInner.Name = "ToggleInner"
             ToggleInner.Parent = ToggleButton
-            ToggleInner.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            ToggleInner.BackgroundColor3 = default and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(60, 60, 60)
             ToggleInner.BorderSizePixel = 0
             ToggleInner.Size = UDim2.new(1, 0, 1, 0)
             ToggleInner.Visible = default
@@ -551,22 +551,23 @@ function Library:CreateWindow(title)
             TextLabel.TextYAlignment = Enum.TextYAlignment.Center
             
             if description then
-                Description.Parent = ToggleFrame
-                Description.BackgroundTransparency = 1
-                Description.Position = UDim2.new(0, 32, 0.5, -2)
-                Description.Size = UDim2.new(1, -40, 0.5, 0)
-                Description.Font = Enum.Font.Gotham
-                Description.Text = description
-                Description.TextColor3 = Color3.fromRGB(200, 200, 200)
-                Description.TextSize = 11
-                Description.TextXAlignment = Enum.TextXAlignment.Left
+            Description.Parent = ToggleFrame
+            Description.BackgroundTransparency = 1
+            Description.Position = UDim2.new(0, 32, 0.5, -2)
+            Description.Size = UDim2.new(1, -40, 0.5, 0)
+            Description.Font = Enum.Font.Gotham
+            Description.Text = description
+            Description.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Description.TextSize = 11
+            Description.TextXAlignment = Enum.TextXAlignment.Left
             end
             
             local toggled = default
             ToggleButton.MouseButton1Click:Connect(function()
-                toggled = not toggled
-                ToggleInner.Visible = toggled
-                callback(toggled)
+            toggled = not toggled
+            ToggleInner.Visible = toggled
+            ToggleInner.BackgroundColor3 = toggled and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(60, 60, 60)
+            callback(toggled)
             end)
             
             return ToggleFrame
@@ -634,21 +635,21 @@ function Library:CreateWindow(title)
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
             ExecuteButton.MouseButton1Click:Connect(function()
-                local code = TextBox.Text
-                local func, err = loadstring(code)
-                if func then
-                    local ok, result = pcall(func)
-                    if ok then
-                        OutputLabel.Text = "실행 성공"
-                        OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120) -- 성공: 초록색
-                    else
-                        OutputLabel.Text = "오류: " .. tostring(result)
-                        OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80) -- 런타임 오류: 빨간색
-                    end
+            local code = TextBox.Text
+            local func, err = loadstring(code)
+            if func then
+                local ok, result = pcall(func)
+                if ok then
+                OutputLabel.Text = "실행 성공"
+                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120) -- 성공: 초록색
                 else
-                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                    OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80) -- 컴파일 오류: 주황색
+                OutputLabel.Text = "오류: " .. tostring(result)
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80) -- 런타임 오류: 빨간색
                 end
+            else
+                OutputLabel.Text = "컴파일 오류: " .. tostring(err)
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80) -- 컴파일 오류: 주황색
+            end
             end)
 
             return ExecutorFrame
