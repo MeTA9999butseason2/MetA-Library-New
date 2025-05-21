@@ -650,7 +650,8 @@ function Library:CreateWindow(title)
         end
 
         return TabFunctions
-    
+    end
+
     return Window
 end
 -- 마지막 줄에 추가
