@@ -572,6 +572,91 @@ function Library:CreateWindow(title)
             
             return ToggleFrame
         end
+
+        -- Syntax highlight helper
+        local function syntaxHighlightLua(code, textLabel)
+            local TweenService = game:GetService("TweenService")
+            -- Patterns for Lua syntax
+            local patterns = {
+            { -- Functions (연한 노란색)
+                pattern = "([%a_][%w_]*)%s*%(", 
+                color = Color3.fromRGB(255, 220, 120),
+                isFunction = true
+            },
+            { -- Keywords (보라색)
+                pattern = "%f[%a](function|if|then|else|elseif|end|for|while|do|repeat|until|return|break|local|and|or|not|in)%f[%A]",
+                color = Color3.fromRGB(180, 120, 255)
+            },
+            { -- Vectors (초록색)
+                pattern = "(Vector%d?%.[%a_][%w_]*)",
+                color = Color3.fromRGB(120, 255, 120)
+            },
+            { -- Variables (파란색)
+                pattern = "%f[%a]([%a_][%w_]*)%f[%A]",
+                color = Color3.fromRGB(120, 180, 255)
+            },
+            }
+            -- Remove duplicate highlights (functions/variables)
+            local function highlight(text)
+            local spans = {}
+            local used = {}
+            for _, p in ipairs(patterns) do
+                for s, e, match in text:gmatch("()("..p.pattern..")()") do
+                if not used[s] then
+                    table.insert(spans, {s, e-1, p.color})
+                    used[s] = true
+                end
+                end
+            end
+            table.sort(spans, function(a, b) return a[1] < b[1] end)
+            return spans
+            end
+
+            -- Build rich text string
+            local function buildRichText(text)
+            local spans = {}
+            local used = {}
+            local rich = ""
+            local i = 1
+            local textLen = #text
+            while i <= textLen do
+                local found = false
+                for _, p in ipairs(patterns) do
+                local s, e = string.find(text, p.pattern, i)
+                if s and not used[s] then
+                    if s > i then
+                    rich = rich .. text:sub(i, s-1)
+                    end
+                    local color = p.color
+                    local sub = text:sub(s, e)
+                    rich = rich .. string.format('<font color="rgb(%d,%d,%d)">%s</font>', color.r*255, color.g*255, color.b*255, sub)
+                    i = e + 1
+                    used[s] = true
+                    found = true
+                    break
+                end
+                end
+                if not found then
+                rich = rich .. text:sub(i, i)
+                i = i + 1
+                end
+            end
+            return rich
+            end
+
+            -- Animate color transitions using TweenService
+            local lastText = textLabel.Text
+            local newRich = buildRichText(code)
+            if textLabel.Text ~= newRich then
+            local tween = TweenService:Create(textLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1})
+            tween:Play()
+            tween.Completed:Wait()
+            textLabel.RichText = true
+            textLabel.Text = newRich
+            TweenService:Create(textLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+            end
+        end
+
         function TabFunctions:AddLuaExecutor()
             local ExecutorFrame = Instance.new("Frame")
             ExecutorFrame.Name = "LuaExecutor"
@@ -601,6 +686,7 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
+            TextBox.RichText = true
 
             local TextBoxCorner = Instance.new("UICorner")
             TextBoxCorner.Parent = TextBox
@@ -634,79 +720,12 @@ function Library:CreateWindow(title)
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
-            -- 코드 자동완성 기능
-            local keywords = {
-            "function", "local", "end", "if", "then", "elseif", "else", "for", "in", "do", "while", "repeat", "until", "return", "break", "and", "or", "not", "true", "false", "nil"
-            }
-            local function getLastWord(str)
-            return str:match("([%w_]+)$")
-            end
-
-            local SuggestionBox = Instance.new("TextLabel")
-            SuggestionBox.Parent = ExecutorFrame
-            SuggestionBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            SuggestionBox.BorderColor3 = Color3.fromRGB(80, 80, 80)
-            SuggestionBox.BorderSizePixel = 1
-            SuggestionBox.Position = UDim2.new(0, 10, 0, 80)
-            SuggestionBox.Size = UDim2.new(0, 120, 0, 18)
-            SuggestionBox.Font = Enum.Font.Code
-            SuggestionBox.Text = ""
-            SuggestionBox.TextColor3 = Color3.fromRGB(180, 220, 255)
-            SuggestionBox.TextSize = 12
-            SuggestionBox.TextXAlignment = Enum.TextXAlignment.Left
-            SuggestionBox.Visible = false
-
-            local UserInputService = game:GetService("UserInputService")
-
-            -- 자동완성 표시: TextBox의 Focused 상태에서만 동작
-            local function updateSuggestion()
-            if not TextBox:IsFocused() then
-                SuggestionBox.Visible = false
-                return
-            end
-            local text = TextBox.Text:sub(1, TextBox.CursorPosition - 1)
-            local lastWord = getLastWord(text)
-            if lastWord and #lastWord > 0 then
-                local found = nil
-                for _, kw in ipairs(keywords) do
-                if kw:sub(1, #lastWord) == lastWord and kw ~= lastWord then
-                    found = kw
-                    break
-                end
-                end
-                if found then
-                SuggestionBox.Text = found
-                SuggestionBox.Visible = true
-                else
-                SuggestionBox.Visible = false
-                end
-            else
-                SuggestionBox.Visible = false
-            end
-            end
-
-            TextBox:GetPropertyChangedSignal("Text"):Connect(updateSuggestion)
-            TextBox:GetPropertyChangedSignal("CursorPosition"):Connect(updateSuggestion)
-            TextBox.Focused:Connect(updateSuggestion)
-            TextBox.FocusLost:Connect(function()
-            SuggestionBox.Visible = false
+            -- 실시간 구문 강조
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+            syntaxHighlightLua(TextBox.Text, TextBox)
             end)
-
-            -- Tab 키로 자동완성 적용
-            UserInputService.InputBegan:Connect(function(input, processed)
-            if processed then return end
-            if TextBox:IsFocused() and SuggestionBox.Visible and input.KeyCode == Enum.KeyCode.Tab then
-                local text = TextBox.Text:sub(1, TextBox.CursorPosition - 1)
-                local lastWord = getLastWord(text)
-                if lastWord then
-                local before = TextBox.Text:sub(1, TextBox.CursorPosition - #lastWord - 1)
-                local after = TextBox.Text:sub(TextBox.CursorPosition)
-                TextBox.Text = before .. SuggestionBox.Text .. after
-                TextBox.CursorPosition = #before + #SuggestionBox.Text + 1
-                SuggestionBox.Visible = false
-                end
-            end
-            end)
+            -- 최초 강조
+            syntaxHighlightLua(TextBox.Text, TextBox)
 
             ExecuteButton.MouseButton1Click:Connect(function()
             local code = TextBox.Text
@@ -715,20 +734,20 @@ function Library:CreateWindow(title)
                 local ok, result = pcall(func)
                 if ok then
                 OutputLabel.Text = "실행 성공"
-                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
+                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120) -- 성공: 초록색
                 else
                 OutputLabel.Text = "오류: " .. tostring(result)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80) -- 런타임 오류: 빨간색
                 end
             else
                 OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
+                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80) -- 컴파일 오류: 주황색
             end
             end)
 
             return ExecutorFrame
         end
-
+        
         return TabFunctions
     
     return Window
