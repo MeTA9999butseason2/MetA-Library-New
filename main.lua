@@ -497,103 +497,105 @@ function Library:CreateWindow(title)
 
         function TabFunctions:AddToggle(text, description, default, callback)
             local ToggleFrame = Instance.new("Frame")
+            local ToggleButton = Instance.new("TextButton")
+            local ToggleInner = Instance.new("Frame")
+            local Description = Instance.new("TextLabel")
+            
             ToggleFrame.Name = text
             ToggleFrame.Parent = Content
-            ToggleFrame.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
-            ToggleFrame.BorderSizePixel = 0
-            ToggleFrame.Size = UDim2.new(0.95, 0, 0, description and 48 or 32)
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ToggleFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ToggleFrame.BorderSizePixel = 1
+            ToggleFrame.Size = UDim2.new(0.95, 0, 0, description and 45 or 30)
             ToggleFrame.Position = UDim2.new(0.025, 0, 0, 0)
-
+            
             local ToggleCorner = Instance.new("UICorner")
             ToggleCorner.Parent = ToggleFrame
-            ToggleCorner.CornerRadius = UDim.new(0, 8)
-
-            local ToggleButton = Instance.new("TextButton")
+            ToggleCorner.CornerRadius = UDim.new(0, 6)
+            
             ToggleButton.Name = "ToggleButton"
             ToggleButton.Parent = ToggleFrame
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
-            ToggleButton.BorderSizePixel = 0
-            ToggleButton.Position = UDim2.new(0, 12, 0.5, -12)
-            ToggleButton.Size = UDim2.new(0, 24, 0, 24)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            ToggleButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ToggleButton.BorderSizePixel = 1
+            ToggleButton.Position = UDim2.new(0, 8, 0.5, -8)
+            ToggleButton.Size = UDim2.new(0, 16, 0, 16)
             ToggleButton.Text = ""
-            ToggleButton.AutoButtonColor = true
-
+            ToggleButton.AutoButtonColor = false
+            
             local ToggleButtonCorner = Instance.new("UICorner")
             ToggleButtonCorner.Parent = ToggleButton
-            ToggleButtonCorner.CornerRadius = UDim.new(1, 0)
-
-            local ToggleInner = Instance.new("Frame")
+            ToggleButtonCorner.CornerRadius = UDim.new(0, 4)
+            
             ToggleInner.Name = "ToggleInner"
             ToggleInner.Parent = ToggleButton
-            ToggleInner.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+            ToggleInner.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             ToggleInner.BorderSizePixel = 0
-            ToggleInner.Size = UDim2.new(1, -8, 1, -8)
-            ToggleInner.Position = UDim2.new(0, 4, 0, 4)
+            ToggleInner.Size = UDim2.new(1, 0, 1, 0)
             ToggleInner.Visible = default
-
+            
             local ToggleInnerCorner = Instance.new("UICorner")
             ToggleInnerCorner.Parent = ToggleInner
-            ToggleInnerCorner.CornerRadius = UDim.new(1, 0)
-
+            ToggleInnerCorner.CornerRadius = UDim.new(0, 4)
+            
             local TextLabel = Instance.new("TextLabel")
             TextLabel.Parent = ToggleFrame
             TextLabel.BackgroundTransparency = 1
-            TextLabel.Position = UDim2.new(0, 44, 0, 0)
-            TextLabel.Size = UDim2.new(1, -52, description and 0.5 or 1, 0)
-            TextLabel.Font = Enum.Font.GothamMedium
+            TextLabel.Position = UDim2.new(0, 32, 0, 0)
+            TextLabel.Size = UDim2.new(1, -40, description and 0.5 or 1, 0)
+            TextLabel.Font = Enum.Font.Gotham
             TextLabel.Text = text
-            TextLabel.TextColor3 = Color3.fromRGB(220, 221, 222)
-            TextLabel.TextSize = 15
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.TextSize = 13
             TextLabel.TextXAlignment = Enum.TextXAlignment.Left
             TextLabel.TextYAlignment = Enum.TextYAlignment.Center
-
+            
             if description then
-            local DescriptionLabel = Instance.new("TextLabel")
-            DescriptionLabel.Parent = ToggleFrame
-            DescriptionLabel.BackgroundTransparency = 1
-            DescriptionLabel.Position = UDim2.new(0, 44, 0.5, 0)
-            DescriptionLabel.Size = UDim2.new(1, -52, 0.5, 0)
-            DescriptionLabel.Font = Enum.Font.Gotham
-            DescriptionLabel.Text = description
-            DescriptionLabel.TextColor3 = Color3.fromRGB(150, 153, 157)
-            DescriptionLabel.TextSize = 12
-            DescriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
-            DescriptionLabel.TextYAlignment = Enum.TextYAlignment.Top
+                Description.Parent = ToggleFrame
+                Description.BackgroundTransparency = 1
+                Description.Position = UDim2.new(0, 32, 0.5, -2)
+                Description.Size = UDim2.new(1, -40, 0.5, 0)
+                Description.Font = Enum.Font.Gotham
+                Description.Text = description
+                Description.TextColor3 = Color3.fromRGB(200, 200, 200)
+                Description.TextSize = 11
+                Description.TextXAlignment = Enum.TextXAlignment.Left
             end
-
+            
             local toggled = default
             ToggleButton.MouseButton1Click:Connect(function()
-            toggled = not toggled
-            ToggleInner.Visible = toggled
-            callback(toggled)
+                toggled = not toggled
+                ToggleInner.Visible = toggled
+                callback(toggled)
             end)
-
+            
             return ToggleFrame
         end
-
         function TabFunctions:AddLuaExecutor()
             local ExecutorFrame = Instance.new("Frame")
             ExecutorFrame.Name = "LuaExecutor"
             ExecutorFrame.Parent = Content
-            ExecutorFrame.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
-            ExecutorFrame.BorderSizePixel = 0
-            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 130)
+            ExecutorFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ExecutorFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ExecutorFrame.BorderSizePixel = 1
+            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 120)
             ExecutorFrame.Position = UDim2.new(0.025, 0, 0, 0)
 
             local ExecutorCorner = Instance.new("UICorner")
             ExecutorCorner.Parent = ExecutorFrame
-            ExecutorCorner.CornerRadius = UDim.new(0, 8)
+            ExecutorCorner.CornerRadius = UDim.new(0, 6)
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
-            TextBox.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
-            TextBox.BorderSizePixel = 0
-            TextBox.Position = UDim2.new(0, 10, 0, 10)
-            TextBox.Size = UDim2.new(1, -20, 0, 70)
+            TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            TextBox.BorderSizePixel = 1
+            TextBox.Position = UDim2.new(0, 8, 0, 8)
+            TextBox.Size = UDim2.new(1, -16, 0, 70)
             TextBox.Font = Enum.Font.Code
-            TextBox.Text = "-- Enter Lua code here"
-            TextBox.TextColor3 = Color3.fromRGB(220, 221, 222)
-            TextBox.TextSize = 14
+            TextBox.Text = "-- 여기에 Lua 코드를 입력하세요"
+            TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.TextSize = 13
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
@@ -601,57 +603,57 @@ function Library:CreateWindow(title)
 
             local TextBoxCorner = Instance.new("UICorner")
             TextBoxCorner.Parent = TextBox
-            TextBoxCorner.CornerRadius = UDim.new(0, 6)
+            TextBoxCorner.CornerRadius = UDim.new(0, 4)
 
             local ExecuteButton = Instance.new("TextButton")
             ExecuteButton.Parent = ExecutorFrame
-            ExecuteButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-            ExecuteButton.BorderSizePixel = 0
-            ExecuteButton.Position = UDim2.new(1, -90, 1, -38)
+            ExecuteButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+            ExecuteButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ExecuteButton.BorderSizePixel = 1
+            ExecuteButton.Position = UDim2.new(1, -88, 1, -36)
             ExecuteButton.Size = UDim2.new(0, 80, 0, 28)
             ExecuteButton.Font = Enum.Font.GothamBold
-            ExecuteButton.Text = "Execute"
+            ExecuteButton.Text = "실행"
             ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ExecuteButton.TextSize = 14
+            ExecuteButton.TextSize = 13
 
             local ExecuteButtonCorner = Instance.new("UICorner")
             ExecuteButtonCorner.Parent = ExecuteButton
-            ExecuteButtonCorner.CornerRadius = UDim.new(0, 6)
+            ExecuteButtonCorner.CornerRadius = UDim.new(0, 4)
 
             local OutputLabel = Instance.new("TextLabel")
             OutputLabel.Parent = ExecutorFrame
             OutputLabel.BackgroundTransparency = 1
-            OutputLabel.Position = UDim2.new(0, 10, 1, -32)
-            OutputLabel.Size = UDim2.new(1, -100, 0, 22)
+            OutputLabel.Position = UDim2.new(0, 8, 1, -60)
+            OutputLabel.Size = UDim2.new(1, -100, 0, 20)
             OutputLabel.Font = Enum.Font.Gotham
             OutputLabel.Text = ""
-            OutputLabel.TextColor3 = Color3.fromRGB(150, 153, 157)
+            OutputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             OutputLabel.TextSize = 12
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
             ExecuteButton.MouseButton1Click:Connect(function()
-            local code = TextBox.Text
-            local func, err = loadstring(code)
-            if func then
-                local ok, result = pcall(func)
-                if ok then
-                    OutputLabel.Text = "<font color=\"rgb(80,200,120)\">Success</font>"
+                local code = TextBox.Text
+                local func, err = loadstring(code)
+                if func then
+                    local ok, result = pcall(func)
+                    if ok then
+                        OutputLabel.Text = "실행 성공"
+                    else
+                        OutputLabel.Text = "오류: " .. tostring(result)
+                    end
                 else
-                    OutputLabel.Text = "<font color=\"rgb(255,80,80)\">Error: " .. tostring(result) .. "</font>"
+                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
                 end
-            else
-                OutputLabel.Text = "<font color=\"rgb(255,180,80)\">Compile error: " .. tostring(err) .. "</font>"
-            end
-            OutputLabel.RichText = true
             end)
 
             return ExecutorFrame
         end
-
+        
         return TabFunctions
     end
-
+    
     return Window
 end
 -- 마지막 줄에 추가
