@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.3.1 UI Remake")
+print("V 0.3.5 Code Editor ReWorked")
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
@@ -618,7 +618,7 @@ function Library:CreateWindow(title)
             ExecutorFrame.Parent = Content
             ExecutorFrame.BackgroundColor3 = Color3.fromRGB(48, 54, 74)
             ExecutorFrame.BorderSizePixel = 0
-            ExecutorFrame.Size = UDim2.new(1, -32, 0, 260)
+            ExecutorFrame.Size = UDim2.new(1, -32, 0, 300)
             ExecutorFrame.Position = UDim2.new(0, 16, 0, 0)
             ExecutorFrame.ZIndex = 7
 
@@ -640,13 +640,151 @@ function Library:CreateWindow(title)
             EditorBox.TextYAlignment = Enum.TextYAlignment.Top
             EditorBox.ClearTextOnFocus = false
             EditorBox.MultiLine = true
-            EditorBox.RichText = false
+            EditorBox.RichText = true
             EditorBox.ClipsDescendants = true
             EditorBox.ZIndex = 8
 
             local EditorCorner = Instance.new("UICorner")
             EditorCorner.Parent = EditorBox
             EditorCorner.CornerRadius = UDim.new(0, 6)
+
+            -- Highlighting (basic, keywords only)
+            local luaKeywords = {
+            "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
+            "if", "in", "local", "nil", "not", "or", "repeat", "return", "then",
+            "true", "until", "while"
+            }
+            local keywordSet = {}
+            for _, k in ipairs(luaKeywords) do keywordSet[k] = true end
+
+            local function highlightLua(text)
+            -- Only highlight keywords, comments, and strings (basic)
+            local function replKeyword(word)
+                if keywordSet[word] then
+                return string.format('<font color="#4FC3F7">%s</font>', word)
+                else
+                return word
+                end
+            end
+            -- Strings
+            text = text:gsub('("[^"\n]*")', '<font color="#A5D6A7">%1</font>')
+            text = text:gsub("('[^'\n]*')", '<font color="#A5D6A7">%1</font>')
+            -- Comments
+            text = text:gsub("(%-%-.-)\n", '<font color="#B0BEC5">%1</font>\n')
+            text = text:gsub("(%-%-.-)$", '<font color="#B0BEC5">%1</font>')
+            -- Keywords
+            text = text:gsub("(%w+)", replKeyword)
+            return text
+            end
+
+            -- Highlight update
+            local HighlightLabel = Instance.new("TextLabel")
+            HighlightLabel.Parent = ExecutorFrame
+            HighlightLabel.BackgroundTransparency = 1
+            HighlightLabel.Position = EditorBox.Position
+            HighlightLabel.Size = EditorBox.Size
+            HighlightLabel.Font = Enum.Font.Code
+            HighlightLabel.Text = ""
+            HighlightLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            HighlightLabel.TextSize = 15
+            HighlightLabel.TextXAlignment = Enum.TextXAlignment.Left
+            HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
+            HighlightLabel.RichText = true
+            HighlightLabel.ClipsDescendants = true
+            HighlightLabel.ZIndex = EditorBox.ZIndex + 1
+            HighlightLabel.TextWrapped = false
+            HighlightLabel.TextTransparency = 0.1
+            HighlightLabel.Visible = true
+            HighlightLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
+            HighlightLabel.TextStrokeTransparency = 1
+            HighlightLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+
+            -- Sync highlight with editor
+            local function syncHighlight()
+            HighlightLabel.Text = highlightLua(EditorBox.Text)
+            HighlightLabel.Size = EditorBox.Size
+            HighlightLabel.Position = EditorBox.Position
+            end
+            EditorBox:GetPropertyChangedSignal("Text"):Connect(syncHighlight)
+            EditorBox:GetPropertyChangedSignal("Size"):Connect(syncHighlight)
+            EditorBox:GetPropertyChangedSignal("Position"):Connect(syncHighlight)
+            syncHighlight()
+
+            -- Place highlight behind text
+            HighlightLabel.ZIndex = EditorBox.ZIndex - 1
+
+            -- Auto-completion (very basic, for keywords)
+            local AutoCompleteBox = Instance.new("TextLabel")
+            AutoCompleteBox.Parent = ExecutorFrame
+            AutoCompleteBox.BackgroundTransparency = 1
+            AutoCompleteBox.Position = UDim2.new(0, 16, 0, 116)
+            AutoCompleteBox.Size = UDim2.new(1, -32, 0, 18)
+            AutoCompleteBox.Font = Enum.Font.Code
+            AutoCompleteBox.Text = ""
+            AutoCompleteBox.TextColor3 = Color3.fromRGB(120, 180, 255)
+            AutoCompleteBox.TextSize = 14
+            AutoCompleteBox.TextXAlignment = Enum.TextXAlignment.Left
+            AutoCompleteBox.TextYAlignment = Enum.TextYAlignment.Top
+            AutoCompleteBox.RichText = false
+            AutoCompleteBox.ZIndex = 10
+            AutoCompleteBox.Visible = false
+
+            local function getLastWord(str)
+            return str:match("([%w_]+)$") or ""
+            end
+
+            local function getAutoComplete(text)
+            local last = getLastWord(text)
+            if #last < 1 then return "" end
+            for _, k in ipairs(luaKeywords) do
+                if k:sub(1, #last) == last and k ~= last then
+                return k
+                end
+            end
+            return ""
+            end
+
+            EditorBox:GetPropertyChangedSignal("Text"):Connect(function()
+            local ac = getAutoComplete(EditorBox.Text)
+            if ac ~= "" then
+                AutoCompleteBox.Text = ac
+                AutoCompleteBox.Visible = true
+            else
+                AutoCompleteBox.Visible = false
+            end
+            end)
+
+            -- Tab/Enter to accept autocomplete
+            EditorBox.FocusLost:Connect(function(enter)
+            if enter and AutoCompleteBox.Visible then
+                local text = EditorBox.Text
+                local last = getLastWord(text)
+                if last ~= "" then
+                local ac = getAutoComplete(text)
+                if ac ~= "" then
+                    EditorBox.Text = text:sub(1, #text - #last) .. ac
+                    AutoCompleteBox.Visible = false
+                    syncHighlight()
+                end
+                end
+            end
+            end)
+
+            -- Accept autocomplete on Tab key
+            EditorBox.InputBegan:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode.Tab and AutoCompleteBox.Visible then
+                local text = EditorBox.Text
+                local last = getLastWord(text)
+                if last ~= "" then
+                local ac = getAutoComplete(text)
+                if ac ~= "" then
+                    EditorBox.Text = text:sub(1, #text - #last) .. ac
+                    AutoCompleteBox.Visible = false
+                    syncHighlight()
+                end
+                end
+            end
+            end)
 
             local ExecuteButton = Instance.new("TextButton")
             ExecuteButton.Parent = ExecutorFrame
@@ -669,7 +807,7 @@ function Library:CreateWindow(title)
             OutputFrame.BackgroundColor3 = Color3.fromRGB(34, 38, 52)
             OutputFrame.BorderSizePixel = 0
             OutputFrame.Position = UDim2.new(0, 12, 0, 164)
-            OutputFrame.Size = UDim2.new(1, -24, 0, 80)
+            OutputFrame.Size = UDim2.new(1, -24, 0, 100)
             OutputFrame.ZIndex = 8
 
             local OutputCorner = Instance.new("UICorner")
@@ -701,51 +839,51 @@ function Library:CreateWindow(title)
             OutputLabel.ZIndex = 10
 
             local function updateOutputScroll()
-                OutputLabel.Size = UDim2.new(1, 0, 0, math.max(80, OutputLabel.TextBounds.Y))
-                OutputScroll.CanvasSize = UDim2.new(0, 0, 0, OutputLabel.AbsoluteSize.Y)
+            OutputLabel.Size = UDim2.new(1, 0, 0, math.max(80, OutputLabel.TextBounds.Y))
+            OutputScroll.CanvasSize = UDim2.new(0, 0, 0, OutputLabel.AbsoluteSize.Y)
             end
             OutputLabel:GetPropertyChangedSignal("Text"):Connect(updateOutputScroll)
             updateOutputScroll()
 
             local function appendOutput(msg, color)
-                OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
-                OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-                updateOutputScroll()
-                OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
+            OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
+            OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+            updateOutputScroll()
+            OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
             end
 
             ExecuteButton.MouseButton1Click:Connect(function()
-                local code = EditorBox.Text
-                code = code:gsub("<.->", "")
-                local func, err = loadstring(code)
-                if func then
-                    local ok, result = pcall(function()
-                        local outputLines = {}
-                        local oldPrint = print
-                        print = function(...)
-                            local args = {}
-                            for i = 1, select("#", ...) do
-                                table.insert(args, tostring(select(i, ...)))
-                            end
-                            table.insert(outputLines, table.concat(args, "\t"))
-                        end
-                        local ret = {func()}
-                        print = oldPrint
-                        if #outputLines > 0 then
-                            for _, line in ipairs(outputLines) do
-                                appendOutput(line, Color3.fromRGB(200, 200, 200))
-                            end
-                        end
-                        return unpack(ret)
-                    end)
-                    if ok then
-                        appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
-                    else
-                        appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+            local code = EditorBox.Text
+            code = code:gsub("<.->", "")
+            local func, err = loadstring(code)
+            if func then
+                local ok, result = pcall(function()
+                local outputLines = {}
+                local oldPrint = print
+                print = function(...)
+                    local args = {}
+                    for i = 1, select("#", ...) do
+                    table.insert(args, tostring(select(i, ...)))
                     end
-                else
-                    appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
+                    table.insert(outputLines, table.concat(args, "\t"))
                 end
+                local ret = {func()}
+                print = oldPrint
+                if #outputLines > 0 then
+                    for _, line in ipairs(outputLines) do
+                    appendOutput(line, Color3.fromRGB(200, 200, 200))
+                    end
+                end
+                return unpack(ret)
+                end)
+                if ok then
+                appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
+                else
+                appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+                end
+            else
+                appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
+            end
             end)
             return ExecutorFrame
         end
