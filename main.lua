@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.3")
+print("V 0.1.4")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -739,47 +739,130 @@ function Library:CreateWindow(title)
             return ExecutorFrame
         end
         
-        function TabFunctions:SetTheme(theme)
-            -- theme: table with color keys, e.g. {Background = Color3, Accent = Color3, Text = Color3, ...}
-            -- Supported keys: Background, Accent, Text, Border, Button, ButtonAccent, ButtonText
-            local function applyThemeToInstance(inst, key, color)
-                if inst and inst:IsA("Frame") or inst:IsA("TextLabel") or inst:IsA("TextButton") then
-                    if key == "Background" and inst.BackgroundColor3 then
-                        inst.BackgroundColor3 = color
-                    elseif key == "Accent" and inst:IsA("TextButton") and inst.Name:find("Button") then
-                        inst.BackgroundColor3 = color
-                    elseif key == "Text" and inst.TextColor3 then
-                        inst.TextColor3 = color
-                    elseif key == "Border" and inst.BorderColor3 then
-                        inst.BorderColor3 = color
-                    end
-                end
+        function TabFunctions:AddThemeSelector(themes)
+            -- themes: table of { [name] = {Background=..., Accent=..., ...}, ... }
+            local ThemeFrame = Instance.new("Frame")
+            ThemeFrame.Name = "ThemeSelector"
+            ThemeFrame.Parent = Content
+            ThemeFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ThemeFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ThemeFrame.BorderSizePixel = 1
+            ThemeFrame.Size = UDim2.new(0.95, 0, 0, 60)
+            ThemeFrame.Position = UDim2.new(0.025, 0, 0, 0)
+
+            local ThemeCorner = Instance.new("UICorner")
+            ThemeCorner.Parent = ThemeFrame
+            ThemeCorner.CornerRadius = UDim.new(0, 6)
+
+            local Label = Instance.new("TextLabel")
+            Label.Parent = ThemeFrame
+            Label.BackgroundTransparency = 1
+            Label.Position = UDim2.new(0, 8, 0, 0)
+            Label.Size = UDim2.new(1, -16, 0, 20)
+            Label.Font = Enum.Font.Gotham
+            Label.Text = "테마 선택"
+            Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local Dropdown = Instance.new("TextButton")
+            Dropdown.Parent = ThemeFrame
+            Dropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            Dropdown.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            Dropdown.BorderSizePixel = 1
+            Dropdown.Position = UDim2.new(0, 8, 0, 28)
+            Dropdown.Size = UDim2.new(1, -16, 0, 24)
+            Dropdown.Font = Enum.Font.Gotham
+            Dropdown.Text = "테마를 선택하세요"
+            Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Dropdown.TextSize = 12
+            Dropdown.TextXAlignment = Enum.TextXAlignment.Left
+            Dropdown.AutoButtonColor = true
+
+            local DropdownCorner = Instance.new("UICorner")
+            DropdownCorner.Parent = Dropdown
+            DropdownCorner.CornerRadius = UDim.new(0, 4)
+
+            local ListFrame = Instance.new("Frame")
+            ListFrame.Parent = ThemeFrame
+            ListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            ListFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ListFrame.BorderSizePixel = 1
+            ListFrame.Position = UDim2.new(0, 8, 0, 52)
+            ListFrame.Size = UDim2.new(1, -16, 0, 0)
+            ListFrame.Visible = false
+            ListFrame.ClipsDescendants = true
+            ListFrame.ZIndex = 10
+
+            local ListCorner = Instance.new("UICorner")
+            ListCorner.Parent = ListFrame
+            ListCorner.CornerRadius = UDim.new(0, 4)
+
+            local UIList = Instance.new("UIListLayout")
+            UIList.Parent = ListFrame
+            UIList.SortOrder = Enum.SortOrder.LayoutOrder
+            UIList.Padding = UDim.new(0, 2)
+
+            local themeNames = {}
+            for name, _ in pairs(themes) do
+            table.insert(themeNames, name)
+            end
+            table.sort(themeNames)
+
+            local function closeDropdown()
+            ListFrame.Visible = false
+            ListFrame.Size = UDim2.new(1, 0, 0, 0)
             end
 
-            for _, obj in ipairs(Content:GetDescendants()) do
-                if theme.Background then
-                    applyThemeToInstance(obj, "Background", theme.Background)
+            Dropdown.MouseButton1Click:Connect(function()
+            if ListFrame.Visible then
+                closeDropdown()
+            else
+                ListFrame.Visible = true
+                ListFrame.Size = UDim2.new(1, -16, 0, #themeNames * 24)
+            end
+            end)
+
+            for _, name in ipairs(themeNames) do
+            local ThemeBtn = Instance.new("TextButton")
+            ThemeBtn.Parent = ListFrame
+            ThemeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ThemeBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            ThemeBtn.BorderSizePixel = 1
+            ThemeBtn.Size = UDim2.new(1, 0, 0, 22)
+            ThemeBtn.Font = Enum.Font.Gotham
+            ThemeBtn.Text = name
+            ThemeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ThemeBtn.TextSize = 12
+            ThemeBtn.AutoButtonColor = true
+
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.Parent = ThemeBtn
+            BtnCorner.CornerRadius = UDim.new(0, 4)
+
+            ThemeBtn.MouseButton1Click:Connect(function()
+                Dropdown.Text = name
+                if TabFunctions.SetTheme then
+                TabFunctions:SetTheme(themes[name])
                 end
-                if theme.Accent then
-                    applyThemeToInstance(obj, "Accent", theme.Accent)
-                end
-                if theme.Text then
-                    applyThemeToInstance(obj, "Text", theme.Text)
-                end
-                if theme.Border then
-                    applyThemeToInstance(obj, "Border", theme.Border)
+                closeDropdown()
+            end)
+            end
+
+            -- Close dropdown if user clicks outside
+            local UIS = game:GetService("UserInputService")
+            UIS.InputBegan:Connect(function(input)
+            if ListFrame.Visible and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local mouse = UIS:GetMouseLocation()
+                local absPos = ListFrame.AbsolutePosition
+                local absSize = ListFrame.AbsoluteSize
+                if not (mouse.X >= absPos.X and mouse.X <= absPos.X + absSize.X and mouse.Y >= absPos.Y and mouse.Y <= absPos.Y + absSize.Y) then
+                closeDropdown()
                 end
             end
-            -- Also theme the tab button itself
-            if theme.Button then
-                Tab.BackgroundColor3 = theme.Button
-            end
-            if theme.ButtonText and Tab.TextColor3 then
-                Tab.TextColor3 = theme.ButtonText
-            end
-            if theme.ButtonAccent and Tab.BorderColor3 then
-                Tab.BorderColor3 = theme.ButtonAccent
-            end
+            end)
+
+            return ThemeFrame
         end
 
         return TabFunctions
