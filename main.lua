@@ -755,6 +755,8 @@ function Library:CreateWindow(title)
                 ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
             end
             -- Tabs
+        end
+
         function TabFunctions:AddThemeSelector(themes)
             -- themes: table of { [name] = {Background=..., Accent=..., ...}, ... }
             local ThemeFrame = Instance.new("Frame")
@@ -879,8 +881,8 @@ function Library:CreateWindow(title)
             end)
 
             return ThemeFrame
+            return TabFunctions
         end
-
         return TabFunctions
         end
 
