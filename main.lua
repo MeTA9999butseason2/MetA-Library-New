@@ -11,9 +11,12 @@ print("V 0.1.8")
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
     local parent
-    if typeof and typeof(gethui) == "function" then
+    local safe_typeof = typeof or function(obj)
+        return type(obj)
+    end
+    if safe_typeof(gethui) == "function" then
         local s, res = pcall(gethui)
-        if s and typeof(res) == "Instance" and (res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui")) then
+        if s and safe_typeof(res) == "Instance" and (res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui")) then
             parent = res
         end
     end
