@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.2.2")
+print("V 0.2.3")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -706,7 +706,7 @@ function Library:CreateWindow(title)
             ExecuteButtonCorner.Parent = ExecuteButton
             ExecuteButtonCorner.CornerRadius = UDim.new(0, 4)
 
-            -- Output window (multi-line)
+            -- Output window (multi-line, with scroll)
             local OutputFrame = Instance.new("Frame")
             OutputFrame.Parent = ExecutorFrame
             OutputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -729,6 +729,7 @@ function Library:CreateWindow(title)
             OutputScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
             OutputScroll.ClipsDescendants = true
             OutputScroll.ZIndex = 2
+            OutputScroll.ScrollingDirection = Enum.ScrollingDirection.Y -- 추가: 세로 스크롤만
 
             local OutputLabel = Instance.new("TextLabel")
             OutputLabel.Parent = OutputScroll
@@ -747,8 +748,8 @@ function Library:CreateWindow(title)
 
             -- Automatically resize OutputLabel and OutputScroll.CanvasSize
             local function updateOutputScroll()
-                OutputLabel.Size = UDim2.new(1, 0, 0, math.max(60, OutputLabel.TextBounds.Y))
-                OutputScroll.CanvasSize = UDim2.new(0, 0, 0, OutputLabel.AbsoluteSize.Y)
+            OutputLabel.Size = UDim2.new(1, 0, 0, math.max(60, OutputLabel.TextBounds.Y))
+            OutputScroll.CanvasSize = UDim2.new(0, 0, 0, OutputLabel.AbsoluteSize.Y)
             end
             OutputLabel:GetPropertyChangedSignal("Text"):Connect(updateOutputScroll)
             updateOutputScroll()
@@ -774,12 +775,12 @@ function Library:CreateWindow(title)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
                 if keywords[word] then
-                    return "<font color=\"#fbff00\">" .. word .. "</font>"
+                return "<font color=\"#fbff00\">" .. word .. "</font>"
                 elseif funcsHilight[word] then
-                    return "<font color=\"#ffbb01\">" .. word .. "</font>"
+                return "<font color=\"#ffbb01\">" .. word .. "</font>"
                 end
                 if keywordsHilight[word] then
-                    return "<font color=\"#b300ff\">" .. word .. "</font>"
+                return "<font color=\"#b300ff\">" .. word .. "</font>"
                 end
                 return word
             end)
@@ -788,52 +789,60 @@ function Library:CreateWindow(title)
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-                -- Syntax highlight only (no output logic here)
-                HighlightLabel.Text = highlightLua(TextBox.Text)
-                HighlightLabel.ZIndex = 30
+            -- Syntax highlight only (no output logic here)
+            HighlightLabel.Text = highlightLua(TextBox.Text)
+            HighlightLabel.ZIndex = 30
             end)
 
             local function appendOutput(msg, color)
-                OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
-                OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-                -- Update scroll and auto-scroll to bottom
-                updateOutputScroll()
-                OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
+            OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
+            OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+            -- Update scroll and auto-scroll to bottom
+            updateOutputScroll()
+            OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
             end
 
             ExecuteButton.MouseButton1Click:Connect(function()
-                local code = TextBox.Text
-                code = code:gsub("<.->", "")
-                local func, err = loadstring(code)
-                if func then
-                    local ok, result = pcall(function()
-                        -- capture print
-                        local outputLines = {}
-                        local oldPrint = print
-                        print = function(...)
-                            local args = {}
-                            for i = 1, select("#", ...) do
-                                table.insert(args, tostring(select(i, ...)))
-                            end
-                            table.insert(outputLines, table.concat(args, "\t"))
-                        end
-                        local ret = {func()}
-                        print = oldPrint
-                        if #outputLines > 0 then
-                            for _, line in ipairs(outputLines) do
-                                appendOutput(line, Color3.fromRGB(200, 200, 200))
-                            end
-                        end
-                        return unpack(ret)
-                    end)
-                    if ok then
-                        appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
-                    else
-                        appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+            local code = TextBox.Text
+            code = code:gsub("<.->", "")
+            local func, err = loadstring(code)
+            if func then
+                local ok, result = pcall(function()
+                -- capture print
+                local outputLines = {}
+                local oldPrint = print
+                print = function(...)
+                    local args = {}
+                    for i = 1, select("#", ...) do
+                    table.insert(args, tostring(select(i, ...)))
                     end
-                else
-                    appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
+                    table.insert(outputLines, table.concat(args, "\t"))
                 end
+                local ret = {func()}
+                print = oldPrint
+                if #outputLines > 0 then
+                    for _, line in ipairs(outputLines) do
+                    appendOutput(line, Color3.fromRGB(200, 200, 200))
+                    end
+                end
+                return unpack(ret)
+                end)
+                if ok then
+                appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
+                else
+                appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+                end
+            else
+                appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
+            end
+            end)
+
+            -- 마우스 휠로 출력창 스크롤
+            OutputScroll.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseWheel then
+                local delta = input.Position.Z
+                OutputScroll.CanvasPosition = OutputScroll.CanvasPosition + Vector2.new(0, -delta * 20)
+            end
             end)
 
             return ExecutorFrame
