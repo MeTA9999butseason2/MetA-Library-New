@@ -637,7 +637,7 @@ function Library:CreateWindow(title)
             TextBox.Position = UDim2.new(0, 8, 0, 8)
             TextBox.Size = UDim2.new(1, -16, 0, 70)
             TextBox.Font = Enum.Font.Code
-            TextBox.Text = "-- 여기에 Lua 코드를 입력하세요"
+            TextBox.Text = "-- Type your Lua code here"
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.TextSize = 13
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
