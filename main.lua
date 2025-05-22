@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.2.0")
+print("V 0.2.5 UI ReWork")
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
