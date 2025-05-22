@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.3.5 Code Editor ReWorked")
+print("V 0.3.6 Code Editor ReWorked")
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
