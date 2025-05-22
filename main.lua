@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.0.0 Release")
+print("V 1.1.0 Keyword Rework Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -783,7 +783,41 @@ function Library:CreateWindow(title)
             local funcsHilight = {
             ["print"]=true, ["loadstring"]=true, ["pcall"]=true, ["xpcall"]=true, ["require"]=true,
             ["pairs"]=true, ["ipairs"]=true, ["tonumber"]=true, ["tostring"]=true, ["type"]=true,
-            ["string"]=true, ["math"]=true, ["table"]=true
+            ["string"]=true, ["math"]=true, ["table"]=true,
+            ["coroutine"]=true, ["os"]=true, ["io"]=true, ["debug"]=true, ["utf8"]=true,
+            ["assert"]=true, ["collectgarbage"]=true, ["dofile"]=true, ["error"]=true, ["getfenv"]=true,
+            ["getmetatable"]=true, ["ipairs"]=true, ["load"]=true, ["loadfile"]=true, ["module"]=true,
+            ["next"]=true, ["pairs"]=true, ["pcall"]=true, ["print"]=true, ["rawequal"]=true,
+            ["rawget"]=true, ["rawset"]=true, ["require"]=true, ["select"]=true, ["setfenv"]=true,
+            ["setmetatable"]=true, ["tonumber"]=true, ["tostring"]=true, ["type"]=true, ["unpack"]=true,
+            ["xpcall"]=true, ["wait"]=true, ["spawn"]=true, ["delay"]=true, ["tick"]=true,
+            ["Instance"]=true, ["Vector3"]=true, ["CFrame"]=true, ["Color3"]=true, ["Enum"]=true,
+            ["UDim2"]=true, ["Ray"]=true, ["BrickColor"]=true, ["NumberRange"]=true, ["TweenInfo"]=true,
+            ["Rect"]=true, ["Region3"]=true, ["Axes"]=true, ["Faces"]=true, ["NumberSequence"]=true,
+            ["ColorSequence"]=true, ["PhysicalProperties"]=true, ["Random"]=true, ["UserSettings"]=true,
+            ["game"]=true, ["workspace"]=true, ["script"]=true, ["shared"]=true, ["settings"]=true,
+            ["getgenv"]=true, ["getrenv"]=true, ["getgc"]=true, ["getreg"]=true, ["getrawmetatable"]=true,
+            ["setreadonly"]=true, ["islclosure"]=true, ["is_synapse_function"]=true, ["is_protosmasher_closure"]=true,
+            ["newcclosure"]=true, ["hookfunction"]=true, ["checkcaller"]=true, ["firetouchinterest"]=true,
+            ["getconnections"]=true, ["getcallingscript"]=true, ["setclipboard"]=true, ["rconsoleprint"]=true,
+            ["rconsolewarn"]=true, ["rconsoleerr"]=true, ["rconsolename"]=true, ["rconsoleclear"]=true,
+            ["rconsoleinput"]=true, ["rconsoleinfo"]=true, ["rconsoleclose"]=true, ["syn"]=true, ["identifyexecutor"]=true,
+            ["isexecutorclosure"]=true, ["gethui"]=true, ["gethiddenproperty"]=true, ["sethiddenproperty"]=true,
+            ["gethiddenproperties"]=true, ["sethiddenproperties"]=true, ["getinstances"]=true, ["getnilinstances"]=true,
+            ["getloadedmodules"]=true, ["getscriptbytecode"]=true, ["setscriptable"]=true, ["getnamecallmethod"]=true,
+            ["setnamecallmethod"]=true, ["hookmetamethod"]=true, ["hookmetatable"]=true, ["clonefunction"]=true,
+            ["decompile"]=true, ["getthreadidentity"]=true, ["setthreadidentity"]=true, ["getfflag"]=true,
+            ["setfflag"]=true, ["getfps"]=true, ["setfpscap"]=true, ["request"]=true, ["http_request"]=true,
+            ["syn_request"]=true, ["fluxus"]=true, ["krnl"]=true, ["electron"]=true, ["isrbxactive"]=true,
+            ["queue_on_teleport"]=true, ["getasset"]=true, ["getsenv"]=true, ["getprotos"]=true, ["getconstants"]=true,
+            ["getupvalues"]=true, ["setupvalue"]=true, ["getinfo"]=true, ["setinfo"]=true, ["iscclosure"]=true,
+            ["isluau"]=true, ["isluafunction"]=true, ["isfunction"]=true, ["iscfunction"]=true, ["isreadonly"]=true,
+            ["iswriteable"]=true, ["isreadonlytable"]=true, ["iswriteabletable"]=true, ["isreadonlyfunction"]=true,
+            ["iswriteablefunction"]=true, ["isreadonlyclosure"]=true, ["iswriteableclosure"]=true, ["isreadonlymetatable"]=true,
+            ["iswriteablemetatable"]=true, ["isreadonlyuserdata"]=true, ["iswriteableuserdata"]=true, ["isreadonlythread"]=true,
+            ["iswriteablethread"]=true, ["isreadonlyproto"]=true, ["iswriteableproto"]=true, ["isreadonlyupvalue"]=true,
+            ["iswriteableupvalue"]=true, ["isreadonlyconstant"]=true, ["iswriteableconstant"]=true, ["isreadonlyenvironment"]=true,
+            ["iswriteableenvironment"]=true, ["isreadonlytablevalue"]=true, ["iswriteabletablevalue"]=true
             }
             local keywordsHilight = {
             ["if"]=true, ["then"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true, ["function"]=true,
