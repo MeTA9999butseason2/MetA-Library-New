@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.2.1")
+print("V 0.2.2")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -790,6 +790,7 @@ function Library:CreateWindow(title)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
                 -- Syntax highlight only (no output logic here)
                 HighlightLabel.Text = highlightLua(TextBox.Text)
+                HighlightLabel.ZIndex = 30
             end)
 
             local function appendOutput(msg, color)
