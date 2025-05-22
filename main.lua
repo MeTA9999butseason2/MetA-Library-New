@@ -882,7 +882,6 @@ function Library:CreateWindow(title)
             return ThemeFrame
         end
         return TabFunctions
-        return TabFunctions
     end
 
     return Window
