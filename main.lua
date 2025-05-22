@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.7")
+print("V 0.1.5")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -648,7 +648,7 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = true
+            TextBox.RichText = true -- RichText를 true로 설정하여 겹침 현상 방지
             TextBox.ClipsDescendants = true
             TextBox.ZIndex = 2
 
@@ -686,151 +686,75 @@ function Library:CreateWindow(title)
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
             OutputLabel.ZIndex = 2
 
-            -- Lua syntax highlight
+            -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
-            ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
-            ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
-            ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
-            ["true"]=true, ["until"]=true, ["while"]=true
+                ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
+                ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
+                ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
+                ["true"]=true, ["until"]=true, ["while"]=true
             }
-            local builtins = {
-            ["print"]=true, ["pairs"]=true, ["ipairs"]=true, ["next"]=true, ["type"]=true, ["pcall"]=true,
-            ["xpcall"]=true, ["error"]=true, ["warn"]=true, ["assert"]=true, ["tostring"]=true, ["tonumber"]=true,
-            ["select"]=true, ["unpack"]=true, ["table"]=true, ["string"]=true, ["math"]=true, ["coroutine"]=true,
-            ["os"]=true, ["game"]=true, ["workspace"]=true, ["Instance"]=true, ["Color3"]=true, ["Vector3"]=true,
-            ["CFrame"]=true, ["Enum"]=true, ["wait"]=true, ["tick"]=true, ["spawn"]=true, ["delay"]=true,
-            ["require"]=true, ["getfenv"]=true, ["setfenv"]=true, ["getmetatable"]=true, ["setmetatable"]=true,
-            ["rawget"]=true, ["rawset"]=true, ["rawlen"]=true, ["rawequal"]=true
-            }
-            local operators = {
-            ["+"] = true, ["-"] = true, ["*"] = true, ["/"] = true, ["%"] = true, ["^"] = true,
-            ["#"] = true, ["=="] = true, ["~="] = true, ["<="] = true, [">="] = true,
-            ["<"] = true, [">"] = true, ["="] = true, ["."] = true, [":"] = true, [".."] = true
-            }
-            local function escapeRich(s)
-            return s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
-            end
             local function highlightLua(code)
-            -- 문자열 강조 (노랑)
-            code = code:gsub('(")(.-)(")', function(q, str, q2)
-                return '<font color="#FFD700">'..escapeRich(q..str..q2)..'</font>'
-            end)
-            code = code:gsub("(')(.-)(')", function(q, str, q2)
-                return '<font color="#FFD700">'..escapeRich(q..str..q2)..'</font>'
-            end)
-            -- 주석 강조 (회색)
-            code = code:gsub("(%-%-.-)\n", function(comment)
-                return '<font color="#888888">'..escapeRich(comment)..'</font>\n'
-            end)
-            code = code:gsub("(%-%-.-)$", function(comment)
-                return '<font color="#888888">'..escapeRich(comment)..'</font>'
-            end)
-            -- 숫자 강조 (파랑)
-            code = code:gsub("(%d+%.?%d*)", '<font color="#0070FF">%1</font>')
-            -- 키워드 강조 (빨강)
-            code = code:gsub("([%a_][%w_]*)", function(word)
-                if keywords[word] then
-                return '<font color="#FF2222">'..word..'</font>'
-                elseif builtins[word] then
-                return '<font color="#22B2FF">'..word..'</font>'
-                end
-                return word
-            end)
-            -- 연산자 강조 (보라)
-            code = code:gsub("([%+%-%*%%%^#=~<>/%.:]+)", function(op)
-                if operators[op] then
-                return '<font color="#B266FF">'..op..'</font>'
-                end
-                return op
-            end)
-            return code
+                -- 문자열 강조 제거, 주석 강조 제거, 겹침방지 제거
+                -- 숫자 강조 (더 진한 파랑)
+                code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
+                -- 키워드 강조 (더 진한 빨강)
+                code = code:gsub("(%a[%w_]*)", function(word)
+                    if keywords[word] then
+                        return "<font color=\"#FF2222\">" .. word .. "</font>"
+                    end
+                    return word
+                end)
+                return code
             end
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            local text = TextBox.Text
-            HighlightLabel.Text = highlightLua(text)
+                local text = TextBox.Text
+                HighlightLabel.Text = highlightLua(text)
             end)
             -- 초기 하이라이트
             HighlightLabel.Text = highlightLua(TextBox.Text)
 
             ExecuteButton.MouseButton1Click:Connect(function()
-            -- RichText 제거 후 실행
-            local code = TextBox.Text
-            -- RichText 태그 제거
-            code = code:gsub("<.->", "")
-            local func, err = loadstring(code)
-            if func then
-                local ok, result = pcall(func)
-                if ok then
-                OutputLabel.Text = "실행 성공"
-                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
+                -- RichText 제거 후 실행
+                local code = TextBox.Text
+                -- RichText 태그 제거
+                code = code:gsub("<.->", "")
+                local func, err = loadstring(code)
+                if func then
+                    local ok, result = pcall(func)
+                    if ok then
+                        OutputLabel.Text = "실행 성공"
+                        OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
+                    else
+                        OutputLabel.Text = "오류: " .. tostring(result)
+                        OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    end
                 else
-                OutputLabel.Text = "오류: " .. tostring(result)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
+                    OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
                 end
-            else
-                OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
-            end
             end)
 
             return ExecutorFrame
         end
-
+        
         function TabFunctions:SetTheme(theme)
             -- theme: {Background=..., Accent=..., ...}
             -- Apply theme to main UI elements
             if Main and Main:IsA("Frame") then
-            Main.BackgroundColor3 = theme.Background or Main.BackgroundColor3
+                Main.BackgroundColor3 = theme.Background or Main.BackgroundColor3
             end
             if Title and Title:IsA("TextLabel") then
-            Title.BackgroundColor3 = theme.Background or Title.BackgroundColor3
+                Title.BackgroundColor3 = theme.Background or Title.BackgroundColor3
             end
             if TabHolder and TabHolder:IsA("Frame") then
-            TabHolder.BackgroundColor3 = theme.Background or TabHolder.BackgroundColor3
+                TabHolder.BackgroundColor3 = theme.Background or TabHolder.BackgroundColor3
             end
             if ContentContainer and ContentContainer:IsA("Frame") then
-            ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
+                ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
             end
             -- Tabs
-            if Window._tabs then
-            for i, tab in ipairs(Window._tabs) do
-                if tab:IsA("TextButton") then
-                -- Set accent for selected tab, background for others
-                if Window._tabContents and Window._tabContents[i] and Window._tabContents[i].Visible then
-                    tab.BackgroundColor3 = theme.Accent or tab.BackgroundColor3
-                else
-                    tab.BackgroundColor3 = theme.Background or tab.BackgroundColor3
-                end
-                end
-            end
-            end
-            -- Tab contents
-            if Window._tabContents then
-            for _, content in ipairs(Window._tabContents) do
-                if content:IsA("ScrollingFrame") then
-                content.BackgroundColor3 = theme.Background or content.BackgroundColor3
-                end
-            end
-            end
-            -- Update accent color for buttons in all tabs
-            if Window._tabContents then
-            for _, content in ipairs(Window._tabContents) do
-                for _, child in ipairs(content:GetChildren()) do
-                if child:IsA("TextButton") then
-                    -- If it's a button (not a tab), set accent color
-                    if child.Name == "CloseButton" or child.Name == "MinimizeButton" then
-                    -- skip window controls
-                    else
-                    child.BackgroundColor3 = theme.Accent or child.BackgroundColor3
-                    end
-                end
-                end
-            end
-            end
-        end
-
         function TabFunctions:AddThemeSelector(themes)
             -- themes: table of { [name] = {Background=..., Accent=..., ...}, ... }
             local ThemeFrame = Instance.new("Frame")
