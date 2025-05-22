@@ -631,6 +631,7 @@ function Library:CreateWindow(title)
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
             TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            TextBox.BackgroundTransparency = 1 -- Make background transparent for highlight
             TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
             TextBox.BorderSizePixel = 1
             TextBox.Position = UDim2.new(0, 8, 0, 8)
