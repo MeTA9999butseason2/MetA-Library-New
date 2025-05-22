@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.6")
+print("V 0.1.7")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -607,7 +607,7 @@ function Library:CreateWindow(title)
             ExecutorFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             ExecutorFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
             ExecutorFrame.BorderSizePixel = 1
-            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 180)
+            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 220)
             ExecutorFrame.Position = UDim2.new(0.025, 0, 0, 0)
 
             local ExecutorCorner = Instance.new("UICorner")
@@ -672,16 +672,16 @@ function Library:CreateWindow(title)
 
             -- Auto-resize TextBox and HighlightLabel height
             local function updateEditorHeight()
-                local lines = 1
-                for _ in string.gmatch(TextBox.Text, "\n") do lines = lines + 1 end
-                local height = math.max(100, lines * 18)
-                TextBox.Size = UDim2.new(1, 0, 0, height)
-                HighlightLabel.Size = UDim2.new(1, 0, 0, height)
-                EditorScroll.CanvasSize = UDim2.new(0, 0, 0, height)
+            local lines = 1
+            for _ in string.gmatch(TextBox.Text, "\n") do lines = lines + 1 end
+            local height = math.max(100, lines * 18)
+            TextBox.Size = UDim2.new(1, 0, 0, height)
+            HighlightLabel.Size = UDim2.new(1, 0, 0, height)
+            EditorScroll.CanvasSize = UDim2.new(0, 0, 0, height)
             end
 
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-                updateEditorHeight()
+            updateEditorHeight()
             end)
             updateEditorHeight()
 
@@ -690,7 +690,7 @@ function Library:CreateWindow(title)
             ExecuteButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
             ExecuteButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
             ExecuteButton.BorderSizePixel = 1
-            ExecuteButton.Position = UDim2.new(1, -88, 1, -36)
+            ExecuteButton.Position = UDim2.new(1, -88, 0, 116)
             ExecuteButton.Size = UDim2.new(0, 80, 0, 28)
             ExecuteButton.Font = Enum.Font.GothamBold
             ExecuteButton.Text = "실행"
@@ -702,82 +702,133 @@ function Library:CreateWindow(title)
             ExecuteButtonCorner.Parent = ExecuteButton
             ExecuteButtonCorner.CornerRadius = UDim.new(0, 4)
 
+            -- Output window (multi-line)
+            local OutputFrame = Instance.new("Frame")
+            OutputFrame.Parent = ExecutorFrame
+            OutputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            OutputFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            OutputFrame.BorderSizePixel = 1
+            OutputFrame.Position = UDim2.new(0, 8, 0, 148)
+            OutputFrame.Size = UDim2.new(1, -16, 0, 60)
+
+            local OutputCorner = Instance.new("UICorner")
+            OutputCorner.Parent = OutputFrame
+            OutputCorner.CornerRadius = UDim.new(0, 4)
+
+            local OutputScroll = Instance.new("ScrollingFrame")
+            OutputScroll.Parent = OutputFrame
+            OutputScroll.BackgroundTransparency = 1
+            OutputScroll.Position = UDim2.new(0, 0, 0, 0)
+            OutputScroll.Size = UDim2.new(1, 0, 1, 0)
+            OutputScroll.ScrollBarThickness = 6
+            OutputScroll.CanvasSize = UDim2.new(0, 0, 0, 60)
+            OutputScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            OutputScroll.ClipsDescendants = true
+            OutputScroll.ZIndex = 2
+
             local OutputLabel = Instance.new("TextLabel")
-            OutputLabel.Parent = ExecutorFrame
+            OutputLabel.Parent = OutputScroll
             OutputLabel.BackgroundTransparency = 1
-            OutputLabel.Position = UDim2.new(0, 8, 1, -60)
-            OutputLabel.Size = UDim2.new(1, -100, 0, 20)
-            OutputLabel.Font = Enum.Font.Gotham
+            OutputLabel.Position = UDim2.new(0, 0, 0, 0)
+            OutputLabel.Size = UDim2.new(1, 0, 1, 0)
+            OutputLabel.Font = Enum.Font.Code
             OutputLabel.Text = ""
             OutputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             OutputLabel.TextSize = 12
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
-            OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
+            OutputLabel.TextYAlignment = Enum.TextYAlignment.Top
+            OutputLabel.TextWrapped = true
+            OutputLabel.TextYAlignment = Enum.TextYAlignment.Top
+            OutputLabel.RichText = false
             OutputLabel.ZIndex = 2
 
             -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
-                ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
-                ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
-                ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
-                ["true"]=true, ["until"]=true, ["while"]=true
+            ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
+            ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
+            ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
+            ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-                code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
-                code = code:gsub("(%a[%w_]*)", function(word)
-                    if keywords[word] then
-                        return "<font color=\"#FF2222\">" .. word .. "</font>"
-                    end
-                    return word
-                end)
-                return code
+            code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
+            code = code:gsub("(%a[%w_]*)", function(word)
+                if keywords[word] then
+                return "<font color=\"#FF2222\">" .. word .. "</font>"
+                end
+                return word
+            end)
+            return code
             end
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-                local text = TextBox.Text
-                HighlightLabel.Text = highlightLua(text)
-                updateEditorHeight()
+            local text = TextBox.Text
+            HighlightLabel.Text = highlightLua(text)
+            updateEditorHeight()
             end)
             -- 초기 하이라이트
             HighlightLabel.Text = highlightLua(TextBox.Text)
 
+            -- Output helper
+            local function appendOutput(msg, color)
+            OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
+            OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+            -- Auto scroll to bottom
+            OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
+            end
+
             ExecuteButton.MouseButton1Click:Connect(function()
-                local code = TextBox.Text
-                code = code:gsub("<.->", "")
-                local func, err = loadstring(code)
-                if func then
-                    local ok, result = pcall(func)
-                    if ok then
-                        OutputLabel.Text = "실행 성공"
-                        OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
-                    else
-                        OutputLabel.Text = "오류: " .. tostring(result)
-                        OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            local code = TextBox.Text
+            code = code:gsub("<.->", "")
+            local func, err = loadstring(code)
+            if func then
+                local ok, result = pcall(function()
+                -- capture print
+                local outputLines = {}
+                local oldPrint = print
+                print = function(...)
+                    local args = {}
+                    for i = 1, select("#", ...) do
+                    table.insert(args, tostring(select(i, ...)))
                     end
-                else
-                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                    OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
+                    table.insert(outputLines, table.concat(args, "\t"))
                 end
+                local ret = {func()}
+                print = oldPrint
+                if #outputLines > 0 then
+                    for _, line in ipairs(outputLines) do
+                    appendOutput(line, Color3.fromRGB(200, 200, 200))
+                    end
+                end
+                return unpack(ret)
+                end)
+                if ok then
+                appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
+                else
+                appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+                end
+            else
+                appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
+            end
             end)
 
             return ExecutorFrame
         end
-        
+
         function TabFunctions:SetTheme(theme)
             -- theme: {Background=..., Accent=..., ...}
             -- Apply theme to main UI elements
             if Main and Main:IsA("Frame") then
-                Main.BackgroundColor3 = theme.Background or Main.BackgroundColor3
+            Main.BackgroundColor3 = theme.Background or Main.BackgroundColor3
             end
             if Title and Title:IsA("TextLabel") then
-                Title.BackgroundColor3 = theme.Background or Title.BackgroundColor3
+            Title.BackgroundColor3 = theme.Background or Title.BackgroundColor3
             end
             if TabHolder and TabHolder:IsA("Frame") then
-                TabHolder.BackgroundColor3 = theme.Background or TabHolder.BackgroundColor3
+            TabHolder.BackgroundColor3 = theme.Background or TabHolder.BackgroundColor3
             end
             if ContentContainer and ContentContainer:IsA("Frame") then
-                ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
+            ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
             end
             -- Tabs
         end
