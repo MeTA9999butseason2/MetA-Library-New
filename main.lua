@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.1")
+print("V 0.1.2")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -693,23 +693,7 @@ function Library:CreateWindow(title)
                 ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-                -- 먼저 문자열 강조 (겹침 방지, non-greedy)
-                local stringTokens = {}
-                local function stringReplacer(str)
-                    table.insert(stringTokens, str)
-                    return "%%STR" .. #stringTokens .. "%%"
-                end
-                code = code:gsub("(['\"]).-.-%1", stringReplacer)
-
-                -- 한 줄 주석 강조 (겹침 방지, non-greedy)
-                local commentTokens = {}
-                local function commentReplacer(str)
-                    table.insert(commentTokens, str)
-                    return "%%CMT" .. #commentTokens .. "%%"
-                end
-                code = code:gsub("%-%-.-\n", function(s) return commentReplacer(s:sub(1, #s-1)) .. "\n" end)
-                code = code:gsub("%-%-.*$", commentReplacer)
-
+                -- 문자열 강조 제거, 주석 강조 제거, 겹침방지 제거
                 -- 숫자 강조
                 code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
                 -- 키워드 강조
@@ -719,17 +703,6 @@ function Library:CreateWindow(title)
                     end
                     return word
                 end)
-
-                -- 토큰 복원 (문자열)
-                for i, str in ipairs(stringTokens) do
-                    code = code:gsub("%%STR" .. i .. "%%", "<font color=\"#FFD700\">" .. str .. "</font>")
-                end
-                -- 토큰 복원 (주석)
-                for i, str in ipairs(commentTokens) do
-                    -- gsub에서 %%는 패턴이므로, plain=true로 정확히 매칭
-                    code = code:gsub("%%CMT" .. i .. "%%", "<font color=\"#888888\">" .. str .. "</font>", 1)
-                end
-
                 return code
             end
 
