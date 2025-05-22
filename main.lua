@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.2.0 Release")
+print("V 1.0.0 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -748,13 +748,13 @@ function Library:CreateWindow(title)
             OutputScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
             OutputScroll.ClipsDescendants = true
             OutputScroll.ZIndex = 2
-            OutputScroll.ScrollingDirection = Enum.ScrollingDirection.Y -- 추가: 세로 스크롤만
+            OutputScroll.ScrollingDirection = Enum.ScrollingDirection.Y
 
             local OutputLabel = Instance.new("TextLabel")
             OutputLabel.Parent = OutputScroll
             OutputLabel.BackgroundTransparency = 1
             OutputLabel.Position = UDim2.new(0, 0, 0, 0)
-            OutputLabel.Size = UDim2.new(1, 0, 0, 0) -- Height will be set dynamically
+            OutputLabel.Size = UDim2.new(1, 0, 0, 0)
             OutputLabel.Font = Enum.Font.Code
             OutputLabel.Text = ""
             OutputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -775,10 +775,8 @@ function Library:CreateWindow(title)
 
             -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
-            ["and"]=true,
-            ["false"]=true, ["in"]=true, ["local"]=true,
-            ["nil"]=true, ["not"]=true, ["or"]=true,
-            ["true"]=true
+            ["and"]=true, ["false"]=true, ["in"]=true, ["local"]=true,
+            ["nil"]=true, ["not"]=true, ["or"]=true, ["true"]=true
             }
             local funcsHilight = {
             ["print"]=true, ["loadstring"]=true, ["pcall"]=true, ["xpcall"]=true, ["require"]=true,
@@ -824,6 +822,7 @@ function Library:CreateWindow(title)
             ["local"]=true, ["return"]=true, ["while"]=true, ["do"]=true, ["repeat"]=true, ["until"]=true,
             ["break"]=true, ["continue"]=true
             }
+
             -- 자동완성 드롭다운 구현
             local AutoCompleteFrame = Instance.new("Frame")
             AutoCompleteFrame.Parent = EditorScroll
@@ -845,90 +844,145 @@ function Library:CreateWindow(title)
             AutoCompleteList.Padding = UDim.new(0, 0)
 
             local function getCompletions(prefix)
-                local results = {}
-                for word in pairs(keywords) do
-                    if word:sub(1, #prefix) == prefix then
-                        table.insert(results, word)
-                    end
+            local results = {}
+            for word in pairs(keywords) do
+                if word:sub(1, #prefix) == prefix then
+                table.insert(results, word)
                 end
-                for word in pairs(funcsHilight) do
-                    if word:sub(1, #prefix) == prefix then
-                        table.insert(results, word)
-                    end
+            end
+            for word in pairs(funcsHilight) do
+                if word:sub(1, #prefix) == prefix then
+                table.insert(results, word)
                 end
-                for word in pairs(keywordsHilight) do
-                    if word:sub(1, #prefix) == prefix then
-                        table.insert(results, word)
-                    end
+            end
+            for word in pairs(keywordsHilight) do
+                if word:sub(1, #prefix) == prefix then
+                table.insert(results, word)
                 end
-                table.sort(results)
-                return results
+            end
+            table.sort(results)
+            return results
             end
 
             local function clearAutoComplete()
-                for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
-                    if child:IsA("TextButton") then
-                        child:Destroy()
-                    end
+            for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                child:Destroy()
                 end
             end
+            end
 
-            local function showAutoComplete(suggestions, insertPos, wordStart, wordEnd)
-                clearAutoComplete()
-                if #suggestions == 0 then
-                    AutoCompleteFrame.Visible = false
-                    return
+            -- 커서 위치를 기반으로 Y좌표 계산
+            local function getCursorLineY(text, cursor)
+            local line = 1
+            local last = 1
+            for i = 1, #text do
+                if text:sub(i, i) == "\n" then
+                line = line + 1
+                last = i + 1
                 end
-                AutoCompleteFrame.Visible = true
-                AutoCompleteFrame.Size = UDim2.new(0, 120, 0, math.min(#suggestions, 6) * 20)
-                AutoCompleteFrame.Position = UDim2.new(0, 4, 0, insertPos)
-                for _, word in ipairs(suggestions) do
-                    local btn = Instance.new("TextButton")
-                    btn.Parent = AutoCompleteFrame
-                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                    btn.BorderSizePixel = 0
-                    btn.Size = UDim2.new(1, 0, 0, 20)
-                    btn.Font = Enum.Font.Code
-                    btn.Text = word
-                    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    btn.TextSize = 12
-                    btn.TextXAlignment = Enum.TextXAlignment.Left
-                    btn.ZIndex = 101
-                    btn.AutoButtonColor = true
-                    btn.MouseButton1Click:Connect(function()
-                        local before = TextBox.Text:sub(1, wordStart - 1)
-                        local after = TextBox.Text:sub(wordEnd + 1)
-                        TextBox.Text = before .. word .. after
-                        TextBox.CursorPosition = #before + #word + 1
-                        AutoCompleteFrame.Visible = false
-                    end)
+                if i >= cursor then
+                break
                 end
+            end
+            return (line - 1) * 18
+            end
+
+            local function showAutoComplete(suggestions, cursor, wordStart, wordEnd)
+            clearAutoComplete()
+            if #suggestions == 0 then
+                AutoCompleteFrame.Visible = false
+                return
+            end
+            AutoCompleteFrame.Visible = true
+            AutoCompleteFrame.Size = UDim2.new(0, 120, 0, math.min(#suggestions, 6) * 20)
+            -- 커서 라인에 맞춰 위치
+            local y = getCursorLineY(TextBox.Text, cursor)
+            AutoCompleteFrame.Position = UDim2.new(0, 4, 0, y + 20)
+            for _, word in ipairs(suggestions) do
+                local btn = Instance.new("TextButton")
+                btn.Parent = AutoCompleteFrame
+                btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                btn.BorderSizePixel = 0
+                btn.Size = UDim2.new(1, 0, 0, 20)
+                btn.Font = Enum.Font.Code
+                btn.Text = word
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                btn.TextSize = 12
+                btn.TextXAlignment = Enum.TextXAlignment.Left
+                btn.ZIndex = 101
+                btn.AutoButtonColor = true
+                btn.MouseButton1Click:Connect(function()
+                local before = TextBox.Text:sub(1, wordStart - 1)
+                local after = TextBox.Text:sub(wordEnd + 1)
+                TextBox.Text = before .. word .. after
+                TextBox.CursorPosition = #before + #word + 1
+                AutoCompleteFrame.Visible = false
+                end)
+            end
             end
 
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-                local text = TextBox.Text
-                local cursor = TextBox.CursorPosition
-                if not cursor or cursor <= 1 then
-                    AutoCompleteFrame.Visible = false
-                    return
-                end
-                local left = text:sub(1, cursor - 1)
-                local wordStart, wordEnd = left:find("([%w_]+)$")
-                if wordStart and wordEnd then
-                    local prefix = left:sub(wordStart, wordEnd)
-                    if #prefix > 0 then
-                        local suggestions = getCompletions(prefix)
-                        -- 커서 위치에 맞춰 드롭다운 위치 조정 (간단히 아래로)
-                        showAutoComplete(suggestions, TextBox.AbsolutePosition.Y + (select(2, left:gsub("\n", "")) * 18) + 20, wordStart, cursor - 1)
-                        return
-                    end
-                end
+            local text = TextBox.Text
+            local cursor = TextBox.CursorPosition
+            if not cursor or cursor <= 1 then
                 AutoCompleteFrame.Visible = false
+                return
+            end
+            local left = text:sub(1, cursor - 1)
+            local wordStart, wordEnd = left:find("([%w_]+)$")
+            if wordStart and wordEnd then
+                local prefix = left:sub(wordStart, wordEnd)
+                if #prefix > 0 then
+                local suggestions = getCompletions(prefix)
+                showAutoComplete(suggestions, cursor, wordStart, cursor - 1)
+                return
+                end
+            end
+            AutoCompleteFrame.Visible = false
             end)
 
-            TextBox.FocusLost:Connect(function()
-                AutoCompleteFrame.Visible = false
+            TextBox.Focused:Connect(function()
+            -- 자동완성은 포커스 중에만 표시
+            AutoCompleteFrame.Visible = false
             end)
+            TextBox.FocusLost:Connect(function()
+            AutoCompleteFrame.Visible = false
+            end)
+
+            -- 키보드로 자동완성 선택 (방향키/엔터)
+            TextBox.InputBegan:Connect(function(input)
+            if not AutoCompleteFrame.Visible then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                local children = {}
+                for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    table.insert(children, child)
+                end
+                end
+                if #children == 0 then return end
+                local selected = 1
+                for i, btn in ipairs(children) do
+                if btn.BackgroundColor3 == Color3.fromRGB(60, 120, 255) then
+                    selected = i
+                    break
+                end
+                end
+                if input.KeyCode == Enum.KeyCode.Down then
+                children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                selected = math.min(selected + 1, #children)
+                children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+                elseif input.KeyCode == Enum.KeyCode.Up then
+                children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                selected = math.max(selected - 1, 1)
+                children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+                elseif input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Tab then
+                children[selected]:MouseButton1Click()
+                AutoCompleteFrame.Visible = false
+                end
+            end
+            end)
+
             local function highlightLua(code)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
@@ -947,7 +1001,6 @@ function Library:CreateWindow(title)
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            -- Syntax highlight only (no output logic here)
             HighlightLabel.Text = highlightLua(TextBox.Text)
             HighlightLabel.ZIndex = 30
             end)
@@ -955,7 +1008,6 @@ function Library:CreateWindow(title)
             local function appendOutput(msg, color)
             OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
             OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-            -- Update scroll and auto-scroll to bottom
             updateOutputScroll()
             OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
             end
@@ -966,7 +1018,6 @@ function Library:CreateWindow(title)
             local func, err = loadstring(code)
             if func then
                 local ok, result = pcall(function()
-                -- capture print
                 local outputLines = {}
                 local oldPrint = print
                 print = function(...)
@@ -995,7 +1046,6 @@ function Library:CreateWindow(title)
             end
             end)
 
-            -- 마우스 휠로 출력창 스크롤
             OutputScroll.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseWheel then
                 local delta = input.Position.Z
