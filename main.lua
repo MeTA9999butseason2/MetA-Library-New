@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.0.0 Release")
+print("V 1.2.5 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -950,37 +950,37 @@ function Library:CreateWindow(title)
             AutoCompleteFrame.Visible = false
             end)
 
-            -- 키보드로 자동완성 선택 (방향키/엔터)
+            -- 키보드로 자동완성 선택 (방향키/엔터/탭)
             TextBox.InputBegan:Connect(function(input)
-            if not AutoCompleteFrame.Visible then return end
-            if input.UserInputType == Enum.UserInputType.Keyboard then
-                local children = {}
-                for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
-                if child:IsA("TextButton") then
-                    table.insert(children, child)
+                if not AutoCompleteFrame.Visible then return end
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    local children = {}
+                    for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            table.insert(children, child)
+                        end
+                    end
+                    if #children == 0 then return end
+                    local selected = 1
+                    for i, btn in ipairs(children) do
+                        if btn.BackgroundColor3 == Color3.fromRGB(60, 120, 255) then
+                            selected = i
+                            break
+                        end
+                    end
+                    if input.KeyCode == Enum.KeyCode.Down then
+                        children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                        selected = math.min(selected + 1, #children)
+                        children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+                    elseif input.KeyCode == Enum.KeyCode.Up then
+                        children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                        selected = math.max(selected - 1, 1)
+                        children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+                    elseif input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Tab then
+                        children[selected]:MouseButton1Click()
+                        AutoCompleteFrame.Visible = false
+                    end
                 end
-                end
-                if #children == 0 then return end
-                local selected = 1
-                for i, btn in ipairs(children) do
-                if btn.BackgroundColor3 == Color3.fromRGB(60, 120, 255) then
-                    selected = i
-                    break
-                end
-                end
-                if input.KeyCode == Enum.KeyCode.Down then
-                children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                selected = math.min(selected + 1, #children)
-                children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-                elseif input.KeyCode == Enum.KeyCode.Up then
-                children[selected].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                selected = math.max(selected - 1, 1)
-                children[selected].BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-                elseif input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Tab then
-                children[selected]:MouseButton1Click()
-                AutoCompleteFrame.Visible = false
-                end
-            end
             end)
 
             local function highlightLua(code)
