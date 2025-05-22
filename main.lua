@@ -612,7 +612,7 @@ function Library:CreateWindow(title)
             ExecutorCorner.Parent = ExecutorFrame
             ExecutorCorner.CornerRadius = UDim.new(0, 6)
 
-            -- Syntax highlight label (behind the TextBox)
+            -- Syntax highlight label (on top of the TextBox)
             local HighlightLabel = Instance.new("TextLabel")
             HighlightLabel.Parent = ExecutorFrame
             HighlightLabel.BackgroundTransparency = 1
@@ -626,12 +626,12 @@ function Library:CreateWindow(title)
             HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
             HighlightLabel.RichText = true
             HighlightLabel.ClipsDescendants = true
-            HighlightLabel.ZIndex = 1
+            HighlightLabel.ZIndex = 3 -- Make sure highlight is above the TextBox
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
             TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            TextBox.BackgroundTransparency = 1 -- Make background transparent for highlight
+            TextBox.BackgroundTransparency = 1 -- Make background fully transparent
             TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
             TextBox.BorderSizePixel = 1
             TextBox.Position = UDim2.new(0, 8, 0, 8)
@@ -690,10 +690,10 @@ function Library:CreateWindow(title)
                 ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-                -- 문자열 강조
+                -- 문자열 강조 (따옴표 안의 문자열)
                 code = code:gsub("(%-%-.-)\n", "<font color=\"#888888\">%1</font>\n") -- 한 줄 주석
                 code = code:gsub("(%-%-.*)$", "<font color=\"#888888\">%1</font>") -- 마지막 줄 주석
-                code = code:gsub("(['\"]).-?%1", function(str)
+                code = code:gsub("(['\"]).-.-%1", function(str)
                     return "<font color=\"#FFD700\">" .. str .. "</font>"
                 end)
                 -- 숫자 강조
