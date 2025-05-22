@@ -35,7 +35,6 @@ local function getSafeParent()
     return parent
 end
 
--- ... (여기에 기존 Library:CreateWindow 함수 이하 전체 코드 붙여넣기) ...
 function Library:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
@@ -881,14 +880,13 @@ function Library:CreateWindow(title)
             end)
 
             return ThemeFrame
-            return TabFunctions
         end
         return TabFunctions
-        end
+        return TabFunctions
+    end
 
     return Window
 end
-
 return Library
 --[[
 -- 사용 예시
