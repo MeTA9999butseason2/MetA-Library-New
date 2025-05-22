@@ -14,8 +14,9 @@ local function getSafeParent()
     local safe_typeof = typeof or function(obj)
         return type(obj)
     end
-    if safe_typeof(gethui) == "function" then
-        local s, res = pcall(gethui)
+    local has_gethui, gethui_func = pcall(function() return gethui end)
+    if has_gethui and safe_typeof(gethui_func) == "function" then
+        local s, res = pcall(gethui_func)
         if s and safe_typeof(res) == "Instance" and (res:IsA("ScreenGui") or res:IsA("Folder") or res:IsA("PlayerGui")) then
             parent = res
         end
@@ -848,6 +849,7 @@ function Library:CreateWindow(title)
             ThemeFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             ThemeFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
             ThemeFrame.BorderSizePixel = 1
+            ThemeFrame.ZIndex = 10
             ThemeFrame.Size = UDim2.new(0.95, 0, 0, 60)
             ThemeFrame.Position = UDim2.new(0.025, 0, 0, 0)
 
@@ -875,6 +877,7 @@ function Library:CreateWindow(title)
             Dropdown.Size = UDim2.new(1, -16, 0, 24)
             Dropdown.Font = Enum.Font.Gotham
             Dropdown.Text = "테마를 선택하세요"
+            Dropdown.ZIndex = 10
             Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
             Dropdown.TextSize = 12
             Dropdown.TextXAlignment = Enum.TextXAlignment.Left
@@ -893,7 +896,7 @@ function Library:CreateWindow(title)
             ListFrame.Size = UDim2.new(1, -16, 0, 0)
             ListFrame.Visible = false
             ListFrame.ClipsDescendants = true
-            ListFrame.ZIndex = 10
+            ListFrame.ZIndex = 20
 
             local ListCorner = Instance.new("UICorner")
             ListCorner.Parent = ListFrame
@@ -971,28 +974,26 @@ function Library:CreateWindow(title)
     return Window
 end
 return Library
---[[
--- 사용 예시
-local Window = Library:CreateWindow("My Window")
-local Tab1 = Window:CreateTab("Tab 1")
-local Tab2 = Window:CreateTab("Tab 2")
-Tab1:AddButton("Click Me", "This is a button", function()
-    print("Button clicked!")
-end)
-Tab1:AddText("Hello World", "This is a text label")
-Tab1:AddSlider("Volume", "Adjust the volume", 0, 100, 50, function(value)
-    print("Volume set to: " .. value)
-end)
-Tab1:AddToggle("Enable Feature", "Enable or disable this feature", false, function(enabled)
-    print("Feature enabled: " .. tostring(enabled))
-end)
-Tab1:AddLuaExecutor()
-Tab2:AddButton("Click Me Too", "This is another button", function()
-    print("Another button clicked!")
-end)
-Tab1:AddThemeSelector({
-    ["Default"] = {Background = Color3.fromRGB(40, 40, 40), Accent = Color3.fromRGB(60, 120, 255)},
-    ["Dark"] = {Background = Color3.fromRGB(20, 20, 20), Accent = Color3.fromRGB(80, 220, 120)},
-    ["Light"] = {Background = Color3.fromRGB(240, 240, 240), Accent = Color3.fromRGB(255, 80, 80)}
-})
-]]
+-- Example usage
+-- local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MeTA9999butseason2/MetA-Library-New/refs/heads/main/main.lua"))()
+-- local Window = Library:CreateWindow("Test")
+-- local Tab = Window:CreateTab("Test")
+-- Tab:AddButton("Test Button", "This is a test button", function()
+--     print("Button clicked!")
+-- end)
+-- Tab:AddText("Test Text", "This is a test text")
+-- Tab:AddSlider("Test Slider", "This is a test slider", 0, 100, 50, function(value)
+--     print("Slider value: " .. value)
+-- end)
+-- Tab:AddToggle("Test Toggle", "This is a test toggle", false, function(value)
+--     print("Toggle value: " .. tostring(value))
+-- end)
+-- Tab:AddButton("Test Notification", "This is a test notification", function()
+--     Tab:Notify("Test Notification", "This is a test notification message", 3)
+-- end)
+-- Tab:AddLuaExecutor()
+-- Tab:AddThemeSelector({
+--     Default = {Background = Color3.fromRGB(40, 40, 40), Accent = Color3.fromRGB(60, 120, 255)},
+--     Dark = {Background = Color3.fromRGB(20, 20, 20), Accent = Color3.fromRGB(80, 220, 120)},
+--     Light = {Background = Color3.fromRGB(240, 240, 240), Accent = Color3.fromRGB(255, 120, 60)}
+-- })
