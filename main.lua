@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.3.0 UI Remake")
+print("V 0.3.1 UI Remake")
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
 local function getSafeParent()
@@ -45,15 +45,15 @@ function Library:CreateWindow(title)
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     ScreenGui.Parent = getSafeParent()
 
-    -- BACKDROP
-    local Backdrop = Instance.new("Frame")
-    Backdrop.Name = "Backdrop"
-    Backdrop.Parent = ScreenGui
-    Backdrop.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
-    Backdrop.BackgroundTransparency = 0.1
-    Backdrop.Size = UDim2.new(1, 0, 1, 0)
-    Backdrop.Position = UDim2.new(0, 0, 0, 0)
-    Backdrop.ZIndex = 0
+    -- BACKDROP (삭제됨)
+    -- local Backdrop = Instance.new("Frame")
+    -- Backdrop.Name = "Backdrop"
+    -- Backdrop.Parent = ScreenGui
+    -- Backdrop.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+    -- Backdrop.BackgroundTransparency = 0.1
+    -- Backdrop.Size = UDim2.new(1, 0, 1, 0)
+    -- Backdrop.Position = UDim2.new(0, 0, 0, 0)
+    -- Backdrop.ZIndex = 0
 
     -- MAIN WINDOW
     local Main = Instance.new("Frame")
