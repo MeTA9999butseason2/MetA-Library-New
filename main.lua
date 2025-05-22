@@ -627,7 +627,7 @@ function Library:CreateWindow(title)
             HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
             HighlightLabel.RichText = true
             HighlightLabel.ClipsDescendants = true
-            HighlightLabel.ZIndex = 3 -- Make sure highlight is above the TextBox
+            HighlightLabel.ZIndex = 1 -- Set highlight below the TextBox
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
