@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.5")
+print("V 0.1.6")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -756,9 +756,14 @@ function Library:CreateWindow(title)
             end
             -- Tabs
             if Window._tabs then
-                for _, tab in ipairs(Window._tabs) do
+                for i, tab in ipairs(Window._tabs) do
                     if tab:IsA("TextButton") then
-                        tab.BackgroundColor3 = theme.Background or tab.BackgroundColor3
+                        -- Set accent for selected tab, background for others
+                        if Window._tabContents and Window._tabContents[i] and Window._tabContents[i].Visible then
+                            tab.BackgroundColor3 = theme.Accent or tab.BackgroundColor3
+                        else
+                            tab.BackgroundColor3 = theme.Background or tab.BackgroundColor3
+                        end
                     end
                 end
             end
@@ -767,6 +772,21 @@ function Library:CreateWindow(title)
                 for _, content in ipairs(Window._tabContents) do
                     if content:IsA("ScrollingFrame") then
                         content.BackgroundColor3 = theme.Background or content.BackgroundColor3
+                    end
+                end
+            end
+            -- Update accent color for buttons in all tabs
+            if Window._tabContents then
+                for _, content in ipairs(Window._tabContents) do
+                    for _, child in ipairs(content:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            -- If it's a button (not a tab), set accent color
+                            if child.Name == "CloseButton" or child.Name == "MinimizeButton" then
+                                -- skip window controls
+                            else
+                                child.BackgroundColor3 = theme.Accent or child.BackgroundColor3
+                            end
+                        end
                     end
                 end
             end
