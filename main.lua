@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.1.0 Keyword Rework Release")
+print("V 1.2.0 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -824,6 +824,111 @@ function Library:CreateWindow(title)
             ["local"]=true, ["return"]=true, ["while"]=true, ["do"]=true, ["repeat"]=true, ["until"]=true,
             ["break"]=true, ["continue"]=true
             }
+            -- 자동완성 드롭다운 구현
+            local AutoCompleteFrame = Instance.new("Frame")
+            AutoCompleteFrame.Parent = EditorScroll
+            AutoCompleteFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            AutoCompleteFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            AutoCompleteFrame.BorderSizePixel = 1
+            AutoCompleteFrame.Position = UDim2.new(0, 0, 0, 0)
+            AutoCompleteFrame.Size = UDim2.new(0, 0, 0, 0)
+            AutoCompleteFrame.Visible = false
+            AutoCompleteFrame.ZIndex = 100
+
+            local AutoCompleteCorner = Instance.new("UICorner")
+            AutoCompleteCorner.Parent = AutoCompleteFrame
+            AutoCompleteCorner.CornerRadius = UDim.new(0, 4)
+
+            local AutoCompleteList = Instance.new("UIListLayout")
+            AutoCompleteList.Parent = AutoCompleteFrame
+            AutoCompleteList.SortOrder = Enum.SortOrder.LayoutOrder
+            AutoCompleteList.Padding = UDim.new(0, 0)
+
+            local function getCompletions(prefix)
+                local results = {}
+                for word in pairs(keywords) do
+                    if word:sub(1, #prefix) == prefix then
+                        table.insert(results, word)
+                    end
+                end
+                for word in pairs(funcsHilight) do
+                    if word:sub(1, #prefix) == prefix then
+                        table.insert(results, word)
+                    end
+                end
+                for word in pairs(keywordsHilight) do
+                    if word:sub(1, #prefix) == prefix then
+                        table.insert(results, word)
+                    end
+                end
+                table.sort(results)
+                return results
+            end
+
+            local function clearAutoComplete()
+                for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+            end
+
+            local function showAutoComplete(suggestions, insertPos, wordStart, wordEnd)
+                clearAutoComplete()
+                if #suggestions == 0 then
+                    AutoCompleteFrame.Visible = false
+                    return
+                end
+                AutoCompleteFrame.Visible = true
+                AutoCompleteFrame.Size = UDim2.new(0, 120, 0, math.min(#suggestions, 6) * 20)
+                AutoCompleteFrame.Position = UDim2.new(0, 4, 0, insertPos)
+                for _, word in ipairs(suggestions) do
+                    local btn = Instance.new("TextButton")
+                    btn.Parent = AutoCompleteFrame
+                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    btn.BorderSizePixel = 0
+                    btn.Size = UDim2.new(1, 0, 0, 20)
+                    btn.Font = Enum.Font.Code
+                    btn.Text = word
+                    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    btn.TextSize = 12
+                    btn.TextXAlignment = Enum.TextXAlignment.Left
+                    btn.ZIndex = 101
+                    btn.AutoButtonColor = true
+                    btn.MouseButton1Click:Connect(function()
+                        local before = TextBox.Text:sub(1, wordStart - 1)
+                        local after = TextBox.Text:sub(wordEnd + 1)
+                        TextBox.Text = before .. word .. after
+                        TextBox.CursorPosition = #before + #word + 1
+                        AutoCompleteFrame.Visible = false
+                    end)
+                end
+            end
+
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+                local text = TextBox.Text
+                local cursor = TextBox.CursorPosition
+                if not cursor or cursor <= 1 then
+                    AutoCompleteFrame.Visible = false
+                    return
+                end
+                local left = text:sub(1, cursor - 1)
+                local wordStart, wordEnd = left:find("([%w_]+)$")
+                if wordStart and wordEnd then
+                    local prefix = left:sub(wordStart, wordEnd)
+                    if #prefix > 0 then
+                        local suggestions = getCompletions(prefix)
+                        -- 커서 위치에 맞춰 드롭다운 위치 조정 (간단히 아래로)
+                        showAutoComplete(suggestions, TextBox.AbsolutePosition.Y + (select(2, left:gsub("\n", "")) * 18) + 20, wordStart, cursor - 1)
+                        return
+                    end
+                end
+                AutoCompleteFrame.Visible = false
+            end)
+
+            TextBox.FocusLost:Connect(function()
+                AutoCompleteFrame.Visible = false
+            end)
             local function highlightLua(code)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
