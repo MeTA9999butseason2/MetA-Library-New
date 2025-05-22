@@ -644,7 +644,7 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = false -- RichText는 false로 설정
+            TextBox.RichText = true -- RichText를 true로 설정하여 겹침 현상 방지
             TextBox.ClipsDescendants = true
             TextBox.ZIndex = 2
 
