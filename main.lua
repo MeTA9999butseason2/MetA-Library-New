@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.8")
+print("V 0.1.9")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -849,7 +849,6 @@ function Library:CreateWindow(title)
             ThemeFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             ThemeFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
             ThemeFrame.BorderSizePixel = 1
-            ThemeFrame.ZIndex = 10
             ThemeFrame.Size = UDim2.new(0.95, 0, 0, 60)
             ThemeFrame.Position = UDim2.new(0.025, 0, 0, 0)
 
@@ -877,7 +876,6 @@ function Library:CreateWindow(title)
             Dropdown.Size = UDim2.new(1, -16, 0, 24)
             Dropdown.Font = Enum.Font.Gotham
             Dropdown.Text = "테마를 선택하세요"
-            Dropdown.ZIndex = 10
             Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
             Dropdown.TextSize = 12
             Dropdown.TextXAlignment = Enum.TextXAlignment.Left
