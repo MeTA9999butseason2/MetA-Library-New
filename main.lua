@@ -626,6 +626,22 @@ function Library:CreateWindow(title)
             ExecutorCorner.Parent = ExecutorFrame
             ExecutorCorner.CornerRadius = UDim.new(0, 8)
 
+            -- HighlightLabel 먼저 생성 (EditorBox 뒤에 위치)
+            local HighlightLabel = Instance.new("TextLabel")
+            HighlightLabel.Parent = ExecutorFrame
+            HighlightLabel.BackgroundTransparency = 1
+            HighlightLabel.Position = UDim2.new(0, 12, 0, 12)
+            HighlightLabel.Size = UDim2.new(1, -24, 0, 100)
+            HighlightLabel.Font = Enum.Font.Code
+            HighlightLabel.Text = ""
+            HighlightLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            HighlightLabel.TextSize = 15
+            HighlightLabel.TextXAlignment = Enum.TextXAlignment.Left
+            HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
+            HighlightLabel.RichText = true
+            HighlightLabel.ClipsDescendants = true
+            HighlightLabel.ZIndex = 8 -- EditorBox와 같은 ZIndex로 설정
+
             local EditorBox = Instance.new("TextBox")
             EditorBox.Parent = ExecutorFrame
             EditorBox.BackgroundColor3 = Color3.fromRGB(34, 38, 52)
@@ -640,9 +656,9 @@ function Library:CreateWindow(title)
             EditorBox.TextYAlignment = Enum.TextYAlignment.Top
             EditorBox.ClearTextOnFocus = false
             EditorBox.MultiLine = true
-            EditorBox.RichText = true
+            EditorBox.RichText = false
             EditorBox.ClipsDescendants = true
-            EditorBox.ZIndex = 8
+            EditorBox.ZIndex = 9 -- EditorBox가 HighlightLabel 위에 오도록
 
             local EditorCorner = Instance.new("UICorner")
             EditorCorner.Parent = EditorBox
@@ -652,7 +668,48 @@ function Library:CreateWindow(title)
             local luaKeywords = {
             "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
             "if", "in", "local", "nil", "not", "or", "repeat", "return", "then",
-            "true", "until", "while"
+            "true", "until", "while",
+            -- Roblox Lua builtins
+            "Instance", "Enum", "Vector3", "CFrame", "Color3", "UDim2", "Ray", "BrickColor", "TweenInfo",
+            "script", "workspace", "game", "wait", "spawn", "delay", "require", "print", "warn", "error",
+            "pcall", "xpcall", "assert", "select", "unpack", "table", "string", "math", "os", "coroutine",
+            "pairs", "ipairs", "next", "type", "typeof", "getmetatable", "setmetatable", "rawget", "rawset",
+            "rawlen", "rawequal", "tonumber", "tostring", "collectgarbage", "newproxy", "getfenv", "setfenv",
+            "debug", "getupvalue", "setupvalue", "getinfo", "sethook", "gethook", "traceback", "getlocal",
+            "setlocal", "getregistry", "getuservalue", "setuservalue", "getproto", "setproto", "getfield",
+            "setfield", "loadstring", "load", "dofile", "loadfile", "os", "io", "bit32", "utf8",
+            -- Roblox services
+            "Players", "Lighting", "ReplicatedStorage", "ReplicatedFirst", "StarterGui", "StarterPack",
+            "StarterPlayer", "Teams", "SoundService", "RunService", "TweenService", "Debris", "HttpService",
+            "UserInputService", "ContextActionService", "CollectionService", "MarketplaceService",
+            "TeleportService", "DataStoreService", "BadgeService", "Chat", "LocalizationService",
+            "PathfindingService", "PhysicsService", "InsertService", "TestService", "LogService",
+            "MessagingService", "MemoryStoreService", "PolicyService", "ProximityPromptService",
+            "ScriptContext", "Stats", "VRService", "Workspace", "GuiService", "ContentProvider",
+            "NetworkClient", "NetworkServer", "FriendService", "SocialService", "AnalyticsService",
+            -- Common Lua globals
+            "_G", "_ENV", "_VERSION", "nil", "self", "me", "args", "select", "table", "string", "math",
+            "os", "io", "bit32", "utf8", "coroutine", "debug", "require", "module", "package",
+            -- More Roblox types
+            "NumberRange", "NumberSequence", "ColorSequence", "Rect", "Region3", "Region3int16",
+            "Axes", "Faces", "PhysicalProperties", "Font", "DockWidgetPluginGuiInfo", "PathWaypoint",
+            "OverlapParams", "RaycastParams", "Attachment", "Motor6D", "BodyPosition", "BodyGyro",
+            "BodyVelocity", "BodyAngularVelocity", "BodyForce", "BodyThrust", "BodyMover", "RocketPropulsion",
+            "Weld", "WeldConstraint", "AlignPosition", "AlignOrientation", "BallSocketConstraint",
+            "HingeConstraint", "RodConstraint", "SpringConstraint", "SurfaceHinge", "SurfaceSlider",
+            "Vector2", "UDim", "UDim2", "Rect", "CFrame", "Color3", "BrickColor", "TweenInfo", "Axes",
+            "Faces", "Instance", "Enum", "Tween", "TweenService", "RunService", "UserInputService",
+            "InputObject", "Mouse", "KeyCode", "InputType", "BindableEvent", "BindableFunction",
+            "RemoteEvent", "RemoteFunction", "ModuleScript", "LocalScript", "Script", "Camera",
+            "Humanoid", "Part", "Model", "Folder", "ScreenGui", "Frame", "TextLabel", "TextButton",
+            "ImageLabel", "ImageButton", "ScrollingFrame", "UIListLayout", "UICorner", "UIStroke",
+            "UIScale", "UIAspectRatioConstraint", "UIGridLayout", "UIPadding", "UITableLayout",
+            "UISizeConstraint", "UIPageLayout", "UIGradient", "Sound", "Animation", "AnimationTrack",
+            "AnimationController", "HumanoidDescription", "Accessory", "MeshPart", "SpecialMesh",
+            "Decal", "Texture", "SurfaceGui", "BillboardGui", "TextBox", "ViewportFrame", "VideoFrame",
+            "TouchInput", "TouchLongPress", "TouchPan", "TouchPinch", "TouchRotate", "TouchSwipe",
+            "TouchTap", "TouchTapInWorld", "TouchTapInWorldEnd", "TouchTapInWorldMove", "TouchTapInWorldStart",
+            "TouchTapInWorldTap", "TouchTapInWorldUp", "TouchTapInWorldDown", "TouchTapInWorldCancel"
             }
             local keywordSet = {}
             for _, k in ipairs(luaKeywords) do keywordSet[k] = true end
@@ -678,28 +735,6 @@ function Library:CreateWindow(title)
             end
 
             -- Highlight update
-            local HighlightLabel = Instance.new("TextLabel")
-            HighlightLabel.Parent = ExecutorFrame
-            HighlightLabel.BackgroundTransparency = 1
-            HighlightLabel.Position = EditorBox.Position
-            HighlightLabel.Size = EditorBox.Size
-            HighlightLabel.Font = Enum.Font.Code
-            HighlightLabel.Text = ""
-            HighlightLabel.TextColor3 = Color3.fromRGB(255,255,255)
-            HighlightLabel.TextSize = 15
-            HighlightLabel.TextXAlignment = Enum.TextXAlignment.Left
-            HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
-            HighlightLabel.RichText = true
-            HighlightLabel.ClipsDescendants = true
-            HighlightLabel.ZIndex = EditorBox.ZIndex + 1
-            HighlightLabel.TextWrapped = false
-            HighlightLabel.TextTransparency = 0.1
-            HighlightLabel.Visible = true
-            HighlightLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
-            HighlightLabel.TextStrokeTransparency = 1
-            HighlightLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-
-            -- Sync highlight with editor
             local function syncHighlight()
             HighlightLabel.Text = highlightLua(EditorBox.Text)
             HighlightLabel.Size = EditorBox.Size
@@ -709,9 +744,6 @@ function Library:CreateWindow(title)
             EditorBox:GetPropertyChangedSignal("Size"):Connect(syncHighlight)
             EditorBox:GetPropertyChangedSignal("Position"):Connect(syncHighlight)
             syncHighlight()
-
-            -- Place highlight behind text
-            HighlightLabel.ZIndex = EditorBox.ZIndex - 1
 
             -- Auto-completion (very basic, for keywords)
             local AutoCompleteBox = Instance.new("TextLabel")
