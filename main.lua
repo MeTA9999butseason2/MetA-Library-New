@@ -603,7 +603,7 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = false
+            TextBox.RichText = true -- RichText를 true로 설정
 
             local TextBoxCorner = Instance.new("UICorner")
             TextBoxCorner.Parent = TextBox
@@ -637,8 +637,45 @@ function Library:CreateWindow(title)
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
 
+            -- 간단한 Lua syntax 하이라이트 함수
+            local keywords = {
+            ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
+            ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
+            ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
+            ["true"]=true, ["until"]=true, ["while"]=true
+            }
+            local function highlightLua(code)
+            -- 문자열 강조
+            code = code:gsub("(%-%-.-)\n", "<font color=\"#888888\">%1</font>\n") -- 한 줄 주석
+            code = code:gsub("(%-%-.*)$", "<font color=\"#888888\">%1</font>") -- 마지막 줄 주석
+            code = code:gsub("(['\"]).-?%1", function(str)
+                return "<font color=\"#FFD700\">" .. str .. "</font>"
+            end)
+            -- 숫자 강조
+            code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
+            -- 키워드 강조
+            code = code:gsub("(%a[%w_]*)", function(word)
+                if keywords[word] then
+                return "<font color=\"#FF8080\">" .. word .. "</font>"
+                end
+                return word
+            end)
+            return code
+            end
+
+            -- TextBox 입력 변경 시 하이라이트 적용
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+            -- 커서 위치 저장
+            local text = TextBox.Text
+            local highlighted = highlightLua(text)
+            TextBox.Text = highlighted
+            end)
+
             ExecuteButton.MouseButton1Click:Connect(function()
+            -- RichText 제거 후 실행
             local code = TextBox.Text
+            -- RichText 태그 제거
+            code = code:gsub("<.->", "")
             local func, err = loadstring(code)
             if func then
                 local ok, result = pcall(func)
@@ -659,7 +696,7 @@ function Library:CreateWindow(title)
         end
         
         return TabFunctions
-    end
+        end
 
     return Window
 end
