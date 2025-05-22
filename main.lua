@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.5")
+print("V 0.1.6")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -607,19 +607,37 @@ function Library:CreateWindow(title)
             ExecutorFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             ExecutorFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
             ExecutorFrame.BorderSizePixel = 1
-            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 120)
+            ExecutorFrame.Size = UDim2.new(0.95, 0, 0, 180)
             ExecutorFrame.Position = UDim2.new(0.025, 0, 0, 0)
 
             local ExecutorCorner = Instance.new("UICorner")
             ExecutorCorner.Parent = ExecutorFrame
             ExecutorCorner.CornerRadius = UDim.new(0, 6)
 
+            -- ScrollingFrame for code editor area
+            local EditorScroll = Instance.new("ScrollingFrame")
+            EditorScroll.Parent = ExecutorFrame
+            EditorScroll.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            EditorScroll.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            EditorScroll.BorderSizePixel = 1
+            EditorScroll.Position = UDim2.new(0, 8, 0, 8)
+            EditorScroll.Size = UDim2.new(1, -16, 0, 100)
+            EditorScroll.ScrollBarThickness = 6
+            EditorScroll.CanvasSize = UDim2.new(0, 0, 0, 100)
+            EditorScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            EditorScroll.ClipsDescendants = true
+            EditorScroll.ZIndex = 1
+
+            local EditorScrollCorner = Instance.new("UICorner")
+            EditorScrollCorner.Parent = EditorScroll
+            EditorScrollCorner.CornerRadius = UDim.new(0, 4)
+
             -- Syntax highlight label (on top of the TextBox)
             local HighlightLabel = Instance.new("TextLabel")
-            HighlightLabel.Parent = ExecutorFrame
+            HighlightLabel.Parent = EditorScroll
             HighlightLabel.BackgroundTransparency = 1
-            HighlightLabel.Position = UDim2.new(0, 8, 0, 8)
-            HighlightLabel.Size = UDim2.new(1, -16, 0, 70)
+            HighlightLabel.Position = UDim2.new(0, 0, 0, 0)
+            HighlightLabel.Size = UDim2.new(1, 0, 0, 100)
             HighlightLabel.Font = Enum.Font.Code
             HighlightLabel.Text = ""
             HighlightLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -628,17 +646,14 @@ function Library:CreateWindow(title)
             HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
             HighlightLabel.RichText = true
             HighlightLabel.ClipsDescendants = true
-            HighlightLabel.ZIndex = 1 -- Set highlight below the TextBox
+            HighlightLabel.ZIndex = 1
             HighlightLabel.TextTransparency = 0
 
             local TextBox = Instance.new("TextBox")
-            TextBox.Parent = ExecutorFrame
-            TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            TextBox.BackgroundTransparency = 1 -- Make background fully transparent
-            TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
-            TextBox.BorderSizePixel = 1
-            TextBox.Position = UDim2.new(0, 8, 0, 8)
-            TextBox.Size = UDim2.new(1, -16, 0, 70)
+            TextBox.Parent = EditorScroll
+            TextBox.BackgroundTransparency = 1
+            TextBox.Position = UDim2.new(0, 0, 0, 0)
+            TextBox.Size = UDim2.new(1, 0, 0, 100)
             TextBox.Font = Enum.Font.Code
             TextBox.Text = "--Type your Lua code here"
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -647,13 +662,28 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = true -- RichText를 true로 설정하여 겹침 현상 방지
+            TextBox.RichText = true
             TextBox.ClipsDescendants = true
             TextBox.ZIndex = 2
 
             local TextBoxCorner = Instance.new("UICorner")
             TextBoxCorner.Parent = TextBox
             TextBoxCorner.CornerRadius = UDim.new(0, 4)
+
+            -- Auto-resize TextBox and HighlightLabel height
+            local function updateEditorHeight()
+                local lines = 1
+                for _ in string.gmatch(TextBox.Text, "\n") do lines = lines + 1 end
+                local height = math.max(100, lines * 18)
+                TextBox.Size = UDim2.new(1, 0, 0, height)
+                HighlightLabel.Size = UDim2.new(1, 0, 0, height)
+                EditorScroll.CanvasSize = UDim2.new(0, 0, 0, height)
+            end
+
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+                updateEditorHeight()
+            end)
+            updateEditorHeight()
 
             local ExecuteButton = Instance.new("TextButton")
             ExecuteButton.Parent = ExecutorFrame
@@ -693,10 +723,7 @@ function Library:CreateWindow(title)
                 ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-                -- 문자열 강조 제거, 주석 강조 제거, 겹침방지 제거
-                -- 숫자 강조 (더 진한 파랑)
                 code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
-                -- 키워드 강조 (더 진한 빨강)
                 code = code:gsub("(%a[%w_]*)", function(word)
                     if keywords[word] then
                         return "<font color=\"#FF2222\">" .. word .. "</font>"
@@ -710,14 +737,13 @@ function Library:CreateWindow(title)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
                 local text = TextBox.Text
                 HighlightLabel.Text = highlightLua(text)
+                updateEditorHeight()
             end)
             -- 초기 하이라이트
             HighlightLabel.Text = highlightLua(TextBox.Text)
 
             ExecuteButton.MouseButton1Click:Connect(function()
-                -- RichText 제거 후 실행
                 local code = TextBox.Text
-                -- RichText 태그 제거
                 code = code:gsub("<.->", "")
                 local func, err = loadstring(code)
                 if func then
