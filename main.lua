@@ -659,11 +659,13 @@ function Library:CreateWindow(title)
         end
         
         return TabFunctions
-    
+    end
+
     return Window
 end
--- 마지막 줄에 추가
+
 return Library
+--[[
 -- 사용 예시
 local Window = Library:CreateWindow("My Window")
 local Tab1 = Window:CreateTab("Tab 1")
@@ -682,3 +684,4 @@ Tab1:AddLuaExecutor()
 Tab2:AddButton("Click Me Too", "This is another button", function()
     print("Another button clicked!")
 end)
+]]
