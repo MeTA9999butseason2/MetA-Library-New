@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.0")
+print("V 0.1.1")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -765,6 +765,49 @@ function Library:CreateWindow(title)
             return ExecutorFrame
         end
         
+        function TabFunctions:SetTheme(theme)
+            -- theme: table with color keys, e.g. {Background = Color3, Accent = Color3, Text = Color3, ...}
+            -- Supported keys: Background, Accent, Text, Border, Button, ButtonAccent, ButtonText
+            local function applyThemeToInstance(inst, key, color)
+                if inst and inst:IsA("Frame") or inst:IsA("TextLabel") or inst:IsA("TextButton") then
+                    if key == "Background" and inst.BackgroundColor3 then
+                        inst.BackgroundColor3 = color
+                    elseif key == "Accent" and inst:IsA("TextButton") and inst.Name:find("Button") then
+                        inst.BackgroundColor3 = color
+                    elseif key == "Text" and inst.TextColor3 then
+                        inst.TextColor3 = color
+                    elseif key == "Border" and inst.BorderColor3 then
+                        inst.BorderColor3 = color
+                    end
+                end
+            end
+
+            for _, obj in ipairs(Content:GetDescendants()) do
+                if theme.Background then
+                    applyThemeToInstance(obj, "Background", theme.Background)
+                end
+                if theme.Accent then
+                    applyThemeToInstance(obj, "Accent", theme.Accent)
+                end
+                if theme.Text then
+                    applyThemeToInstance(obj, "Text", theme.Text)
+                end
+                if theme.Border then
+                    applyThemeToInstance(obj, "Border", theme.Border)
+                end
+            end
+            -- Also theme the tab button itself
+            if theme.Button then
+                Tab.BackgroundColor3 = theme.Button
+            end
+            if theme.ButtonText and Tab.TextColor3 then
+                Tab.TextColor3 = theme.ButtonText
+            end
+            if theme.ButtonAccent and Tab.BorderColor3 then
+                Tab.BorderColor3 = theme.ButtonAccent
+            end
+        end
+
         return TabFunctions
         end
 
