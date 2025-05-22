@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.2.0")
+print("V 1.0.0 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -40,6 +40,25 @@ local function getSafeParent()
 end
 
 function Library:CreateWindow(title)
+    -- UI 여백과 외곽선(Shadow) 추가
+    local Padding = Instance.new("UIPadding")
+    Padding.Parent = ScreenGui
+    Padding.PaddingTop = UDim.new(0, 8)
+    Padding.PaddingBottom = UDim.new(0, 8)
+    Padding.PaddingLeft = UDim.new(0, 8)
+    Padding.PaddingRight = UDim.new(0, 8)
+
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.Parent = ScreenGui
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxassetid://1316045217"
+    Shadow.ImageTransparency = 0.4
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(10,10,118,118)
+    Shadow.Size = UDim2.new(0, 520, 0, 320)
+    Shadow.Position = UDim2.new(0.5, -260, 0.5, -160)
+    Shadow.ZIndex = 0
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
     ScreenGui.ResetOnSpawn = false
