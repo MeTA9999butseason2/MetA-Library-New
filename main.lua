@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.7")
+print("V 0.1.8")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -730,7 +730,7 @@ function Library:CreateWindow(title)
             OutputLabel.Parent = OutputScroll
             OutputLabel.BackgroundTransparency = 1
             OutputLabel.Position = UDim2.new(0, 0, 0, 0)
-            OutputLabel.Size = UDim2.new(1, 0, 1, 0)
+            OutputLabel.Size = UDim2.new(1, 0, 0, 0) -- Height will be set dynamically
             OutputLabel.Font = Enum.Font.Code
             OutputLabel.Text = ""
             OutputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -738,9 +738,16 @@ function Library:CreateWindow(title)
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Top
             OutputLabel.TextWrapped = true
-            OutputLabel.TextYAlignment = Enum.TextYAlignment.Top
             OutputLabel.RichText = false
             OutputLabel.ZIndex = 2
+
+            -- Automatically resize OutputLabel and OutputScroll.CanvasSize
+            local function updateOutputScroll()
+                OutputLabel.Size = UDim2.new(1, 0, 0, math.max(60, OutputLabel.TextBounds.Y))
+                OutputScroll.CanvasSize = UDim2.new(0, 0, 0, OutputLabel.AbsoluteSize.Y)
+            end
+            OutputLabel:GetPropertyChangedSignal("Text"):Connect(updateOutputScroll)
+            updateOutputScroll()
 
             -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
@@ -762,13 +769,14 @@ function Library:CreateWindow(title)
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            local text = TextBox.Text
-            HighlightLabel.Text = highlightLua(text)
-            updateEditorHeight()
-            end)
-            -- 초기 하이라이트
-            HighlightLabel.Text = highlightLua(TextBox.Text)
-
+            -- Output helper
+            local function appendOutput(msg, color)
+                OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
+                OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+                -- Update scroll and auto-scroll to bottom
+                updateOutputScroll()
+                OutputScroll.CanvasPosition = Vector2.new(0, OutputScroll.CanvasSize.Y.Offset)
+            end
             -- Output helper
             local function appendOutput(msg, color)
             OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
