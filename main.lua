@@ -217,6 +217,10 @@ function Library:CreateWindow(title)
     
     local Window = {}
     
+    -- Store all tabs and their contents for switching
+    Window._tabs = Window._tabs or {}
+    Window._tabContents = Window._tabContents or {}
+
     function Window:CreateTab(name)
         local Tab = Instance.new("TextButton")
         local Content = Instance.new("ScrollingFrame")
@@ -242,13 +246,33 @@ function Library:CreateWindow(title)
         Content.Parent = ContentContainer
         Content.BackgroundTransparency = 1
         Content.Size = UDim2.new(1, 0, 1, 0)
-        Content.Visible = true
+        Content.Visible = false -- Only show when selected
         Content.ScrollBarThickness = 2
         Content.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
         
         ContentList.Parent = Content
         ContentList.SortOrder = Enum.SortOrder.LayoutOrder
         ContentList.Padding = UDim.new(0, 8)
+
+        -- Store tab and content for switching
+        table.insert(Window._tabs, Tab)
+        table.insert(Window._tabContents, Content)
+
+        -- Tab switching logic
+        Tab.MouseButton1Click:Connect(function()
+            for i, c in ipairs(Window._tabContents) do
+                c.Visible = false
+                Window._tabs[i].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            end
+            Content.Visible = true
+            Tab.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+        end)
+
+        -- If this is the first tab, select it by default
+        if #Window._tabs == 1 then
+            Content.Visible = true
+            Tab.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+        end
         
         local TabFunctions = {}
 
