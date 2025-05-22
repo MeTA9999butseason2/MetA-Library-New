@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.9")
+print("V 0.2.0")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -760,11 +760,18 @@ function Library:CreateWindow(title)
             ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
             ["true"]=true, ["until"]=true, ["while"]=true
             }
+            local funcsHilight = {
+            ["print"]=true, ["loadstring"]=true, ["pcall"]=true, ["xpcall"]=true, ["require"]=true,
+            ["pairs"]=true, ["ipairs"]=true, ["tonumber"]=true, ["tostring"]=true, ["type"]=true,
+            ["string"]=true, ["math"]=true, ["table"]=true
+            }
             local function highlightLua(code)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
                 if keywords[word] then
-                return "<font color=\"#FF2222\">" .. word .. "</font>"
+                    return "<font color=\"#FF2222\">" .. word .. "</font>"
+                elseif funcsHilight[word] then
+                    return "<font color=\"#ffbb01\">" .. word .. "</font>"
                 end
                 return word
             end)
