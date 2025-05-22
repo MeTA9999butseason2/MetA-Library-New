@@ -202,7 +202,8 @@ function Library:CreateWindow(title)
     TabHolder.BorderSizePixel = 1
     TabHolder.Position = UDim2.new(0, 0, 0, 25)
     TabHolder.Size = UDim2.new(0, 100, 1, -25)
-    
+
+    -- Ensure TabList is parented to TabHolder for proper tab listing
     TabList.Parent = TabHolder
     TabList.SortOrder = Enum.SortOrder.LayoutOrder
     TabList.Padding = UDim.new(0, 5)
@@ -217,6 +218,10 @@ function Library:CreateWindow(title)
     
     local Window = {}
     
+    -- Store all tabs and their contents for switching
+    Window._tabs = Window._tabs or {}
+    Window._tabContents = Window._tabContents or {}
+
     function Window:CreateTab(name)
         local Tab = Instance.new("TextButton")
         local Content = Instance.new("ScrollingFrame")
@@ -242,13 +247,33 @@ function Library:CreateWindow(title)
         Content.Parent = ContentContainer
         Content.BackgroundTransparency = 1
         Content.Size = UDim2.new(1, 0, 1, 0)
-        Content.Visible = true
+        Content.Visible = false -- Only show when selected
         Content.ScrollBarThickness = 2
         Content.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
         
         ContentList.Parent = Content
         ContentList.SortOrder = Enum.SortOrder.LayoutOrder
         ContentList.Padding = UDim.new(0, 8)
+
+        -- Store tab and content for switching
+        table.insert(Window._tabs, Tab)
+        table.insert(Window._tabContents, Content)
+
+        -- Tab switching logic
+        Tab.MouseButton1Click:Connect(function()
+            for i, c in ipairs(Window._tabContents) do
+                c.Visible = false
+                Window._tabs[i].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            end
+            Content.Visible = true
+            Tab.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+        end)
+
+        -- If this is the first tab, select it by default
+        if #Window._tabs == 1 then
+            Content.Visible = true
+            Tab.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+        end
         
         local TabFunctions = {}
 
@@ -588,7 +613,7 @@ function Library:CreateWindow(title)
             ExecutorCorner.Parent = ExecutorFrame
             ExecutorCorner.CornerRadius = UDim.new(0, 6)
 
-            -- Syntax highlight label (behind the TextBox)
+            -- Syntax highlight label (on top of the TextBox)
             local HighlightLabel = Instance.new("TextLabel")
             HighlightLabel.Parent = ExecutorFrame
             HighlightLabel.BackgroundTransparency = 1
@@ -602,24 +627,25 @@ function Library:CreateWindow(title)
             HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
             HighlightLabel.RichText = true
             HighlightLabel.ClipsDescendants = true
-            HighlightLabel.ZIndex = 1
+            HighlightLabel.ZIndex = 1 -- Set highlight below the TextBox
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
             TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            TextBox.BackgroundTransparency = 1 -- Make background fully transparent
             TextBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
             TextBox.BorderSizePixel = 1
             TextBox.Position = UDim2.new(0, 8, 0, 8)
             TextBox.Size = UDim2.new(1, -16, 0, 70)
             TextBox.Font = Enum.Font.Code
-            TextBox.Text = "-- 여기에 Lua 코드를 입력하세요"
+            TextBox.Text = "--Type your Lua code here"
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.TextSize = 13
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = false -- RichText는 false로 설정
+            TextBox.RichText = true -- RichText를 true로 설정하여 겹침 현상 방지
             TextBox.ClipsDescendants = true
             TextBox.ZIndex = 2
 
@@ -665,12 +691,23 @@ function Library:CreateWindow(title)
                 ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-                -- 문자열 강조
-                code = code:gsub("(%-%-.-)\n", "<font color=\"#888888\">%1</font>\n") -- 한 줄 주석
-                code = code:gsub("(%-%-.*)$", "<font color=\"#888888\">%1</font>") -- 마지막 줄 주석
-                code = code:gsub("(['\"]).-?%1", function(str)
-                    return "<font color=\"#FFD700\">" .. str .. "</font>"
-                end)
+                -- 먼저 문자열 강조 (겹침 방지, non-greedy)
+                local stringTokens = {}
+                local function stringReplacer(str)
+                    table.insert(stringTokens, str)
+                    return "%%STR" .. #stringTokens .. "%%"
+                end
+                code = code:gsub("(['\"]).-.-%1", stringReplacer)
+
+                -- 한 줄 주석 강조 (겹침 방지, non-greedy)
+                local commentTokens = {}
+                local function commentReplacer(str)
+                    table.insert(commentTokens, str)
+                    return "%%CMT" .. #commentTokens .. "%%"
+                end
+                code = code:gsub("%-%-.-\n", function(s) return commentReplacer(s:sub(1, #s-1)) .. "\n" end)
+                code = code:gsub("%-%-.*$", commentReplacer)
+
                 -- 숫자 강조
                 code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
                 -- 키워드 강조
@@ -680,6 +717,16 @@ function Library:CreateWindow(title)
                     end
                     return word
                 end)
+
+                -- 토큰 복원 (문자열)
+                for i, str in ipairs(stringTokens) do
+                    code = code:gsub("%%STR" .. i .. "%%", "<font color=\"#FFD700\">" .. str .. "</font>")
+                end
+                -- 토큰 복원 (주석)
+                for i, str in ipairs(commentTokens) do
+                    code = code:gsub("%%CMT" .. i .. "%%", "<font color=\"#888888\">" .. str .. "</font>")
+                end
+
                 return code
             end
 
