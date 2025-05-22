@@ -724,7 +724,8 @@ function Library:CreateWindow(title)
                 end
                 -- 토큰 복원 (주석)
                 for i, str in ipairs(commentTokens) do
-                    code = code:gsub("%%CMT" .. i .. "%%", "<font color=\"#888888\">" .. str .. "</font>")
+                    -- gsub에서 %%는 패턴이므로, plain=true로 정확히 매칭
+                    code = code:gsub("%%CMT" .. i .. "%%", "<font color=\"#888888\">" .. str .. "</font>", 1)
                 end
 
                 return code
