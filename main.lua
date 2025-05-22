@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.4")
+print("V 0.1.5")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -695,12 +695,12 @@ function Library:CreateWindow(title)
             }
             local function highlightLua(code)
                 -- 문자열 강조 제거, 주석 강조 제거, 겹침방지 제거
-                -- 숫자 강조
-                code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
-                -- 키워드 강조
+                -- 숫자 강조 (더 진한 파랑)
+                code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
+                -- 키워드 강조 (더 진한 빨강)
                 code = code:gsub("(%a[%w_]*)", function(word)
                     if keywords[word] then
-                        return "<font color=\"#FF8080\">" .. word .. "</font>"
+                        return "<font color=\"#FF2222\">" .. word .. "</font>"
                     end
                     return word
                 end)
@@ -739,6 +739,39 @@ function Library:CreateWindow(title)
             return ExecutorFrame
         end
         
+        function TabFunctions:SetTheme(theme)
+            -- theme: {Background=..., Accent=..., ...}
+            -- Apply theme to main UI elements
+            if Main and Main:IsA("Frame") then
+                Main.BackgroundColor3 = theme.Background or Main.BackgroundColor3
+            end
+            if Title and Title:IsA("TextLabel") then
+                Title.BackgroundColor3 = theme.Background or Title.BackgroundColor3
+            end
+            if TabHolder and TabHolder:IsA("Frame") then
+                TabHolder.BackgroundColor3 = theme.Background or TabHolder.BackgroundColor3
+            end
+            if ContentContainer and ContentContainer:IsA("Frame") then
+                ContentContainer.BackgroundColor3 = theme.Background or ContentContainer.BackgroundColor3
+            end
+            -- Tabs
+            if Window._tabs then
+                for _, tab in ipairs(Window._tabs) do
+                    if tab:IsA("TextButton") then
+                        tab.BackgroundColor3 = theme.Background or tab.BackgroundColor3
+                    end
+                end
+            end
+            -- Tab contents
+            if Window._tabContents then
+                for _, content in ipairs(Window._tabContents) do
+                    if content:IsA("ScrollingFrame") then
+                        content.BackgroundColor3 = theme.Background or content.BackgroundColor3
+                    end
+                end
+            end
+        end
+
         function TabFunctions:AddThemeSelector(themes)
             -- themes: table of { [name] = {Background=..., Accent=..., ...}, ... }
             local ThemeFrame = Instance.new("Frame")
@@ -805,61 +838,61 @@ function Library:CreateWindow(title)
 
             local themeNames = {}
             for name, _ in pairs(themes) do
-            table.insert(themeNames, name)
+                table.insert(themeNames, name)
             end
             table.sort(themeNames)
 
             local function closeDropdown()
-            ListFrame.Visible = false
-            ListFrame.Size = UDim2.new(1, 0, 0, 0)
+                ListFrame.Visible = false
+                ListFrame.Size = UDim2.new(1, 0, 0, 0)
             end
 
             Dropdown.MouseButton1Click:Connect(function()
-            if ListFrame.Visible then
-                closeDropdown()
-            else
-                ListFrame.Visible = true
-                ListFrame.Size = UDim2.new(1, -16, 0, #themeNames * 24)
-            end
+                if ListFrame.Visible then
+                    closeDropdown()
+                else
+                    ListFrame.Visible = true
+                    ListFrame.Size = UDim2.new(1, -16, 0, #themeNames * 24)
+                end
             end)
 
             for _, name in ipairs(themeNames) do
-            local ThemeBtn = Instance.new("TextButton")
-            ThemeBtn.Parent = ListFrame
-            ThemeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            ThemeBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
-            ThemeBtn.BorderSizePixel = 1
-            ThemeBtn.Size = UDim2.new(1, 0, 0, 22)
-            ThemeBtn.Font = Enum.Font.Gotham
-            ThemeBtn.Text = name
-            ThemeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ThemeBtn.TextSize = 12
-            ThemeBtn.AutoButtonColor = true
+                local ThemeBtn = Instance.new("TextButton")
+                ThemeBtn.Parent = ListFrame
+                ThemeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                ThemeBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+                ThemeBtn.BorderSizePixel = 1
+                ThemeBtn.Size = UDim2.new(1, 0, 0, 22)
+                ThemeBtn.Font = Enum.Font.Gotham
+                ThemeBtn.Text = name
+                ThemeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                ThemeBtn.TextSize = 12
+                ThemeBtn.AutoButtonColor = true
 
-            local BtnCorner = Instance.new("UICorner")
-            BtnCorner.Parent = ThemeBtn
-            BtnCorner.CornerRadius = UDim.new(0, 4)
+                local BtnCorner = Instance.new("UICorner")
+                BtnCorner.Parent = ThemeBtn
+                BtnCorner.CornerRadius = UDim.new(0, 4)
 
-            ThemeBtn.MouseButton1Click:Connect(function()
-                Dropdown.Text = name
-                if TabFunctions.SetTheme then
-                TabFunctions:SetTheme(themes[name])
-                end
-                closeDropdown()
-            end)
+                ThemeBtn.MouseButton1Click:Connect(function()
+                    Dropdown.Text = name
+                    if TabFunctions.SetTheme then
+                        TabFunctions:SetTheme(themes[name])
+                    end
+                    closeDropdown()
+                end)
             end
 
             -- Close dropdown if user clicks outside
             local UIS = game:GetService("UserInputService")
             UIS.InputBegan:Connect(function(input)
-            if ListFrame.Visible and input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local mouse = UIS:GetMouseLocation()
-                local absPos = ListFrame.AbsolutePosition
-                local absSize = ListFrame.AbsoluteSize
-                if not (mouse.X >= absPos.X and mouse.X <= absPos.X + absSize.X and mouse.Y >= absPos.Y and mouse.Y <= absPos.Y + absSize.Y) then
-                closeDropdown()
+                if ListFrame.Visible and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    local mouse = UIS:GetMouseLocation()
+                    local absPos = ListFrame.AbsolutePosition
+                    local absSize = ListFrame.AbsoluteSize
+                    if not (mouse.X >= absPos.X and mouse.X <= absPos.X + absSize.X and mouse.Y >= absPos.Y and mouse.Y <= absPos.Y + absSize.Y) then
+                        closeDropdown()
+                    end
                 end
-            end
             end)
 
             return ThemeFrame
@@ -891,4 +924,9 @@ Tab1:AddLuaExecutor()
 Tab2:AddButton("Click Me Too", "This is another button", function()
     print("Another button clicked!")
 end)
+Tab1:AddThemeSelector({
+    ["Default"] = {Background = Color3.fromRGB(40, 40, 40), Accent = Color3.fromRGB(60, 120, 255)},
+    ["Dark"] = {Background = Color3.fromRGB(20, 20, 20), Accent = Color3.fromRGB(80, 220, 120)},
+    ["Light"] = {Background = Color3.fromRGB(240, 240, 240), Accent = Color3.fromRGB(255, 80, 80)}
+})
 ]]
