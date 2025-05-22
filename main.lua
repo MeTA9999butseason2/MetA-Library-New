@@ -769,55 +769,51 @@ function Library:CreateWindow(title)
 
             -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            -- Output helper
+                -- Syntax highlight only (no output logic here)
+                HighlightLabel.Text = highlightLua(TextBox.Text)
+            end)
+
             local function appendOutput(msg, color)
                 OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
                 OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
                 -- Update scroll and auto-scroll to bottom
                 updateOutputScroll()
-                OutputScroll.CanvasPosition = Vector2.new(0, OutputScroll.CanvasSize.Y.Offset)
-            end
-            -- Output helper
-            local function appendOutput(msg, color)
-            OutputLabel.Text = OutputLabel.Text .. (OutputLabel.Text ~= "" and "\n" or "") .. msg
-            OutputLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-            -- Auto scroll to bottom
-            OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
+                OutputScroll.CanvasPosition = Vector2.new(0, math.max(0, OutputLabel.AbsoluteSize.Y - OutputScroll.AbsoluteWindowSize.Y))
             end
 
             ExecuteButton.MouseButton1Click:Connect(function()
-            local code = TextBox.Text
-            code = code:gsub("<.->", "")
-            local func, err = loadstring(code)
-            if func then
-                local ok, result = pcall(function()
-                -- capture print
-                local outputLines = {}
-                local oldPrint = print
-                print = function(...)
-                    local args = {}
-                    for i = 1, select("#", ...) do
-                    table.insert(args, tostring(select(i, ...)))
+                local code = TextBox.Text
+                code = code:gsub("<.->", "")
+                local func, err = loadstring(code)
+                if func then
+                    local ok, result = pcall(function()
+                        -- capture print
+                        local outputLines = {}
+                        local oldPrint = print
+                        print = function(...)
+                            local args = {}
+                            for i = 1, select("#", ...) do
+                                table.insert(args, tostring(select(i, ...)))
+                            end
+                            table.insert(outputLines, table.concat(args, "\t"))
+                        end
+                        local ret = {func()}
+                        print = oldPrint
+                        if #outputLines > 0 then
+                            for _, line in ipairs(outputLines) do
+                                appendOutput(line, Color3.fromRGB(200, 200, 200))
+                            end
+                        end
+                        return unpack(ret)
+                    end)
+                    if ok then
+                        appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
+                    else
+                        appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
                     end
-                    table.insert(outputLines, table.concat(args, "\t"))
-                end
-                local ret = {func()}
-                print = oldPrint
-                if #outputLines > 0 then
-                    for _, line in ipairs(outputLines) do
-                    appendOutput(line, Color3.fromRGB(200, 200, 200))
-                    end
-                end
-                return unpack(ret)
-                end)
-                if ok then
-                appendOutput("실행 성공", Color3.fromRGB(80, 220, 120))
                 else
-                appendOutput("오류: " .. tostring(result), Color3.fromRGB(255, 80, 80))
+                    appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
                 end
-            else
-                appendOutput("컴파일 오류: " .. tostring(err), Color3.fromRGB(255, 180, 80))
-            end
             end)
 
             return ExecutorFrame
