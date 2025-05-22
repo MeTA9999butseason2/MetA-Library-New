@@ -202,7 +202,8 @@ function Library:CreateWindow(title)
     TabHolder.BorderSizePixel = 1
     TabHolder.Position = UDim2.new(0, 0, 0, 25)
     TabHolder.Size = UDim2.new(0, 100, 1, -25)
-    
+
+    -- Ensure TabList is parented to TabHolder for proper tab listing
     TabList.Parent = TabHolder
     TabList.SortOrder = Enum.SortOrder.LayoutOrder
     TabList.Padding = UDim.new(0, 5)
@@ -637,7 +638,6 @@ function Library:CreateWindow(title)
             TextBox.Position = UDim2.new(0, 8, 0, 8)
             TextBox.Size = UDim2.new(1, -16, 0, 70)
             TextBox.Font = Enum.Font.Code
-            TextBox.Text = "-- Type your Lua code here"
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.TextSize = 13
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -696,6 +696,7 @@ function Library:CreateWindow(title)
                 code = code:gsub("(['\"]).-.-%1", function(str)
                     return "<font color=\"#FFD700\">" .. str .. "</font>"
                 end)
+                
                 -- 숫자 강조
                 code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
                 -- 키워드 강조
