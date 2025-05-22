@@ -288,7 +288,7 @@ function Library:CreateWindow(title)
             NotifyGui.Parent = getSafeParent()
             
             local NotifyFrame = Instance.new("Frame")
-            local Title = Instance.new("TextLabel")
+            local NotifyTitle = Instance.new("TextLabel")
             local Message = Instance.new("TextLabel")
             
             NotifyFrame.Name = "NotifyFrame"
@@ -302,16 +302,16 @@ function Library:CreateWindow(title)
             NotifyCorner.Parent = NotifyFrame
             NotifyCorner.CornerRadius = UDim.new(0, 6)
             
-            Title.Name = "Title"
-            Title.Parent = NotifyFrame
-            Title.BackgroundTransparency = 1
-            Title.Position = UDim2.new(0, 10, 0, 5)
-            Title.Size = UDim2.new(1, -20, 0, 25)
-            Title.Font = Enum.Font.GothamBold
-            Title.Text = title
-            Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Title.TextSize = 14
-            Title.TextXAlignment = Enum.TextXAlignment.Left
+            NotifyTitle.Name = "Title"
+            NotifyTitle.Parent = NotifyFrame
+            NotifyTitle.BackgroundTransparency = 1
+            NotifyTitle.Position = UDim2.new(0, 10, 0, 5)
+            NotifyTitle.Size = UDim2.new(1, -20, 0, 25)
+            NotifyTitle.Font = Enum.Font.GothamBold
+            NotifyTitle.Text = title
+            NotifyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            NotifyTitle.TextSize = 14
+            NotifyTitle.TextXAlignment = Enum.TextXAlignment.Left
             
             Message.Name = "Message"
             Message.Parent = NotifyFrame
