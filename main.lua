@@ -588,6 +588,22 @@ function Library:CreateWindow(title)
             ExecutorCorner.Parent = ExecutorFrame
             ExecutorCorner.CornerRadius = UDim.new(0, 6)
 
+            -- Syntax highlight label (behind the TextBox)
+            local HighlightLabel = Instance.new("TextLabel")
+            HighlightLabel.Parent = ExecutorFrame
+            HighlightLabel.BackgroundTransparency = 1
+            HighlightLabel.Position = UDim2.new(0, 8, 0, 8)
+            HighlightLabel.Size = UDim2.new(1, -16, 0, 70)
+            HighlightLabel.Font = Enum.Font.Code
+            HighlightLabel.Text = ""
+            HighlightLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            HighlightLabel.TextSize = 13
+            HighlightLabel.TextXAlignment = Enum.TextXAlignment.Left
+            HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
+            HighlightLabel.RichText = true
+            HighlightLabel.ClipsDescendants = true
+            HighlightLabel.ZIndex = 1
+
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
             TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -603,7 +619,9 @@ function Library:CreateWindow(title)
             TextBox.TextYAlignment = Enum.TextYAlignment.Top
             TextBox.ClearTextOnFocus = false
             TextBox.MultiLine = true
-            TextBox.RichText = true -- RichText를 true로 설정
+            TextBox.RichText = false -- RichText는 false로 설정
+            TextBox.ClipsDescendants = true
+            TextBox.ZIndex = 2
 
             local TextBoxCorner = Instance.new("UICorner")
             TextBoxCorner.Parent = TextBox
@@ -620,6 +638,7 @@ function Library:CreateWindow(title)
             ExecuteButton.Text = "실행"
             ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             ExecuteButton.TextSize = 13
+            ExecuteButton.ZIndex = 2
 
             local ExecuteButtonCorner = Instance.new("UICorner")
             ExecuteButtonCorner.Parent = ExecuteButton
@@ -636,60 +655,61 @@ function Library:CreateWindow(title)
             OutputLabel.TextSize = 12
             OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
             OutputLabel.TextYAlignment = Enum.TextYAlignment.Center
+            OutputLabel.ZIndex = 2
 
             -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
-            ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
-            ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
-            ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
-            ["true"]=true, ["until"]=true, ["while"]=true
+                ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
+                ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
+                ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
+                ["true"]=true, ["until"]=true, ["while"]=true
             }
             local function highlightLua(code)
-            -- 문자열 강조
-            code = code:gsub("(%-%-.-)\n", "<font color=\"#888888\">%1</font>\n") -- 한 줄 주석
-            code = code:gsub("(%-%-.*)$", "<font color=\"#888888\">%1</font>") -- 마지막 줄 주석
-            code = code:gsub("(['\"]).-?%1", function(str)
-                return "<font color=\"#FFD700\">" .. str .. "</font>"
-            end)
-            -- 숫자 강조
-            code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
-            -- 키워드 강조
-            code = code:gsub("(%a[%w_]*)", function(word)
-                if keywords[word] then
-                return "<font color=\"#FF8080\">" .. word .. "</font>"
-                end
-                return word
-            end)
-            return code
+                -- 문자열 강조
+                code = code:gsub("(%-%-.-)\n", "<font color=\"#888888\">%1</font>\n") -- 한 줄 주석
+                code = code:gsub("(%-%-.*)$", "<font color=\"#888888\">%1</font>") -- 마지막 줄 주석
+                code = code:gsub("(['\"]).-?%1", function(str)
+                    return "<font color=\"#FFD700\">" .. str .. "</font>"
+                end)
+                -- 숫자 강조
+                code = code:gsub("(%d+)", "<font color=\"#7EC0EE\">%1</font>")
+                -- 키워드 강조
+                code = code:gsub("(%a[%w_]*)", function(word)
+                    if keywords[word] then
+                        return "<font color=\"#FF8080\">" .. word .. "</font>"
+                    end
+                    return word
+                end)
+                return code
             end
 
-            -- TextBox 입력 변경 시 하이라이트 적용
+            -- TextBox 입력 변경 시 하이라이트 적용 (HighlightLabel에만 적용)
             TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            -- 커서 위치 저장
-            local text = TextBox.Text
-            local highlighted = highlightLua(text)
-            TextBox.Text = highlighted
+                local text = TextBox.Text
+                HighlightLabel.Text = highlightLua(text)
             end)
+            -- 초기 하이라이트
+            HighlightLabel.Text = highlightLua(TextBox.Text)
 
             ExecuteButton.MouseButton1Click:Connect(function()
-            -- RichText 제거 후 실행
-            local code = TextBox.Text
-            -- RichText 태그 제거
-            code = code:gsub("<.->", "")
-            local func, err = loadstring(code)
-            if func then
-                local ok, result = pcall(func)
-                if ok then
-                OutputLabel.Text = "실행 성공"
-                OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
+                -- RichText 제거 후 실행
+                local code = TextBox.Text
+                -- RichText 태그 제거
+                code = code:gsub("<.->", "")
+                local func, err = loadstring(code)
+                if func then
+                    local ok, result = pcall(func)
+                    if ok then
+                        OutputLabel.Text = "실행 성공"
+                        OutputLabel.TextColor3 = Color3.fromRGB(80, 220, 120)
+                    else
+                        OutputLabel.Text = "오류: " .. tostring(result)
+                        OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    end
                 else
-                OutputLabel.Text = "오류: " .. tostring(result)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    OutputLabel.Text = "컴파일 오류: " .. tostring(err)
+                    OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
                 end
-            else
-                OutputLabel.Text = "컴파일 오류: " .. tostring(err)
-                OutputLabel.TextColor3 = Color3.fromRGB(255, 180, 80)
-            end
             end)
 
             return ExecutorFrame
