@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.1.2")
+print("V 0.1.3")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -630,6 +630,7 @@ function Library:CreateWindow(title)
             HighlightLabel.RichText = true
             HighlightLabel.ClipsDescendants = true
             HighlightLabel.ZIndex = 1 -- Set highlight below the TextBox
+            HighlightLabel.TextTransparency = 0
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = ExecutorFrame
