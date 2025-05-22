@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 0.2.0")
+print("V 0.2.1")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -774,7 +774,7 @@ function Library:CreateWindow(title)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
                 if keywords[word] then
-                    return "<font color=\"#1100ff00\">" .. word .. "</font>"
+                    return "<font color=\"#fbff00\">" .. word .. "</font>"
                 elseif funcsHilight[word] then
                     return "<font color=\"#ffbb01\">" .. word .. "</font>"
                 end
