@@ -755,23 +755,31 @@ function Library:CreateWindow(title)
 
             -- 간단한 Lua syntax 하이라이트 함수
             local keywords = {
-            ["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true,
-            ["false"]=true, ["for"]=true, ["function"]=true, ["if"]=true, ["in"]=true, ["local"]=true,
-            ["nil"]=true, ["not"]=true, ["or"]=true, ["repeat"]=true, ["return"]=true, ["then"]=true,
-            ["true"]=true, ["until"]=true, ["while"]=true
+            ["and"]=true,
+            ["false"]=true, ["in"]=true, ["local"]=true,
+            ["nil"]=true, ["not"]=true, ["or"]=true,
+            ["true"]=true
             }
             local funcsHilight = {
             ["print"]=true, ["loadstring"]=true, ["pcall"]=true, ["xpcall"]=true, ["require"]=true,
             ["pairs"]=true, ["ipairs"]=true, ["tonumber"]=true, ["tostring"]=true, ["type"]=true,
             ["string"]=true, ["math"]=true, ["table"]=true
             }
+            local keywordsHilight = {
+            ["if"]=true, ["then"]=true, ["else"]=true, ["elseif"]=true, ["end"]=true, ["function"]=true,
+            ["local"]=true, ["return"]=true, ["while"]=true, ["do"]=true, ["repeat"]=true, ["until"]=true,
+            ["break"]=true, ["continue"]=true
+            }
             local function highlightLua(code)
             code = code:gsub("(%d+)", "<font color=\"#0070FF\">%1</font>")
             code = code:gsub("(%a[%w_]*)", function(word)
                 if keywords[word] then
-                    return "<font color=\"#FF2222\">" .. word .. "</font>"
+                    return "<font color=\"#1100ff00\">" .. word .. "</font>"
                 elseif funcsHilight[word] then
                     return "<font color=\"#ffbb01\">" .. word .. "</font>"
+                end
+                if keywordsHilight[word] then
+                    return "<font color=\"#b300ff\">" .. word .. "</font>"
                 end
                 return word
             end)
