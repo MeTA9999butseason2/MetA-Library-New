@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.1.1 Beta")
+print("V 1.1.2 Beta")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -40,6 +40,13 @@ local function getSafeParent()
 end
 
 function Library:CreateWindow(title)
+    -- 먼저 ScreenGui를 생성
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = getSafeParent()
+
     -- UI 여백과 외곽선(Shadow) 추가
     local Padding = Instance.new("UIPadding")
     Padding.Parent = ScreenGui
@@ -59,11 +66,6 @@ function Library:CreateWindow(title)
     Shadow.Size = UDim2.new(0, 520, 0, 320)
     Shadow.Position = UDim2.new(0.5, -260, 0.5, -160)
     Shadow.ZIndex = 0
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = getSafeParent()
 
     local Main = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
