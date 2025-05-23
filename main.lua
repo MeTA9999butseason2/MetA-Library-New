@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.0.0 Release")
+print("V 1.2.1 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -823,6 +823,22 @@ function Library:CreateWindow(title)
             ["break"]=true, ["continue"]=true
             }
 
+            -- 변수 자동완성: 코드 내에서 정의된 변수 추출
+            local function extractVariables(code)
+            local vars = {}
+            -- local 변수
+            for var in code:gmatch("local%s+([%w_]+)") do
+                vars[var] = true
+            end
+            -- 전역 변수 (간단히 = 기준)
+            for var in code:gmatch("([%w_]+)%s*=") do
+                if not keywords[var] and not funcsHilight[var] and not keywordsHilight[var] then
+                vars[var] = true
+                end
+            end
+            return vars
+            end
+
             -- 자동완성 드롭다운 구현
             local AutoCompleteFrame = Instance.new("Frame")
             AutoCompleteFrame.Parent = EditorScroll
@@ -843,21 +859,34 @@ function Library:CreateWindow(title)
             AutoCompleteList.SortOrder = Enum.SortOrder.LayoutOrder
             AutoCompleteList.Padding = UDim.new(0, 0)
 
-            local function getCompletions(prefix)
+            local function getCompletions(prefix, code)
             local results = {}
+            local seen = {}
+            -- 변수 자동완성
+            local vars = extractVariables(code)
+            for var in pairs(vars) do
+                if var:sub(1, #prefix) == prefix then
+                table.insert(results, var)
+                seen[var] = true
+                end
+            end
+            -- 키워드/함수 자동완성
             for word in pairs(keywords) do
-                if word:sub(1, #prefix) == prefix then
+                if word:sub(1, #prefix) == prefix and not seen[word] then
                 table.insert(results, word)
+                seen[word] = true
                 end
             end
             for word in pairs(funcsHilight) do
-                if word:sub(1, #prefix) == prefix then
+                if word:sub(1, #prefix) == prefix and not seen[word] then
                 table.insert(results, word)
+                seen[word] = true
                 end
             end
             for word in pairs(keywordsHilight) do
-                if word:sub(1, #prefix) == prefix then
+                if word:sub(1, #prefix) == prefix and not seen[word] then
                 table.insert(results, word)
+                seen[word] = true
                 end
             end
             table.sort(results)
@@ -934,7 +963,7 @@ function Library:CreateWindow(title)
             if wordStart and wordEnd then
                 local prefix = left:sub(wordStart, wordEnd)
                 if #prefix > 0 then
-                local suggestions = getCompletions(prefix)
+                local suggestions = getCompletions(prefix, text)
                 showAutoComplete(suggestions, cursor, wordStart, cursor - 1)
                 return
                 end
@@ -952,21 +981,21 @@ function Library:CreateWindow(title)
 
             -- 키보드로 자동완성 선택 (Tab만 허용, 방향키/엔터/문자 입력 무시)
             TextBox.InputBegan:Connect(function(input)
-                if not AutoCompleteFrame.Visible then return end
-                if input.UserInputType == Enum.UserInputType.Keyboard then
-                    if input.KeyCode == Enum.KeyCode.Tab then
-                        local children = {}
-                        for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
-                            if child:IsA("TextButton") then
-                                table.insert(children, child)
-                            end
-                        end
-                        if #children == 0 then return end
-                        -- 항상 첫 번째 항목만 선택
-                        children[1]:MouseButton1Click()
-                        AutoCompleteFrame.Visible = false
+            if not AutoCompleteFrame.Visible then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                if input.KeyCode == Enum.KeyCode.Tab then
+                local children = {}
+                for _, child in ipairs(AutoCompleteFrame:GetChildren()) do
+                    if child:IsA("TextButton") then
+                    table.insert(children, child)
                     end
                 end
+                if #children == 0 then return end
+                -- 항상 첫 번째 항목만 선택
+                children[1]:MouseButton1Click()
+                AutoCompleteFrame.Visible = false
+                end
+            end
             end)
 
             local function highlightLua(code)
