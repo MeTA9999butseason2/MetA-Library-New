@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.2.3 Beta")
+print("V 1.2.2 Beta")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -55,17 +55,7 @@ function Library:CreateWindow(title)
     Padding.PaddingLeft = UDim.new(0, 8)
     Padding.PaddingRight = UDim.new(0, 8)
 
-    local Shadow = Instance.new("ImageLabel")
-    Shadow.Name = "Shadow"
-    Shadow.Parent = ScreenGui
-    Shadow.BackgroundTransparency = 1
-    Shadow.Image = "rbxassetid://1316045217"
-    Shadow.ImageTransparency = 0.4
-    Shadow.ScaleType = Enum.ScaleType.Slice
-    Shadow.SliceCenter = Rect.new(10,10,118,118)
-    Shadow.Size = UDim2.new(0, 520, 0, 320)
-    Shadow.Position = UDim2.new(0.5, -260, 0.5, -160)
-    Shadow.ZIndex = 0
+
 
     local Main = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
