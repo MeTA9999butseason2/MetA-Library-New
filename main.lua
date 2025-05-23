@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.1.3 Beta")
+print("V 1.2.3 Beta")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -958,7 +958,9 @@ function Library:CreateWindow(title)
             end)
 
             -- 키보드로 자동완성 선택 (Tab만 허용, 방향키/엔터/문자 입력 무시)
-            TextBox.InputBegan:Connect(function(input)
+            local UserInputService = game:GetService("UserInputService")
+            UserInputService.InputBegan:Connect(function(input, processed)
+                if not TextBox:IsFocused() then return end
                 if not AutoCompleteFrame.Visible then return end
                 if input.UserInputType == Enum.UserInputType.Keyboard then
                     if input.KeyCode == Enum.KeyCode.Tab then
