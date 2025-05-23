@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.2.2 Beta")
+print("V 1.0.0 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -40,13 +40,6 @@ local function getSafeParent()
 end
 
 function Library:CreateWindow(title)
-    -- 먼저 ScreenGui를 생성해야 함
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = getSafeParent()
-
     -- UI 여백과 외곽선(Shadow) 추가
     local Padding = Instance.new("UIPadding")
     Padding.Parent = ScreenGui
@@ -55,7 +48,22 @@ function Library:CreateWindow(title)
     Padding.PaddingLeft = UDim.new(0, 8)
     Padding.PaddingRight = UDim.new(0, 8)
 
-
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.Parent = ScreenGui
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxassetid://1316045217"
+    Shadow.ImageTransparency = 0.4
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(10,10,118,118)
+    Shadow.Size = UDim2.new(0, 520, 0, 320)
+    Shadow.Position = UDim2.new(0.5, -260, 0.5, -160)
+    Shadow.ZIndex = 0
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "LibraryUI_" .. tostring(math.random(100000,999999))
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = getSafeParent()
 
     local Main = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
@@ -270,11 +278,6 @@ function Library:CreateWindow(title)
         ContentList.Parent = Content
         ContentList.SortOrder = Enum.SortOrder.LayoutOrder
         ContentList.Padding = UDim.new(0, 8)
-
-        -- Add bottom padding so last asset is not hidden
-        local ContentPadding = Instance.new("UIPadding")
-        ContentPadding.Parent = Content
-        ContentPadding.PaddingBottom = UDim.new(0, 12)
 
         -- Store tab and content for switching
         table.insert(Window._tabs, Tab)
@@ -948,9 +951,7 @@ function Library:CreateWindow(title)
             end)
 
             -- 키보드로 자동완성 선택 (Tab만 허용, 방향키/엔터/문자 입력 무시)
-            local UserInputService = game:GetService("UserInputService")
-            UserInputService.InputBegan:Connect(function(input, processed)
-                if not TextBox:IsFocused() then return end
+            TextBox.InputBegan:Connect(function(input)
                 if not AutoCompleteFrame.Visible then return end
                 if input.UserInputType == Enum.UserInputType.Keyboard then
                     if input.KeyCode == Enum.KeyCode.Tab then
@@ -1186,10 +1187,7 @@ function Library:CreateWindow(title)
         end
         return TabFunctions
     end
-    -- Add bottom padding to Main (window) for extra space at the bottom
-    local MainPadding = Instance.new("UIPadding")
-    MainPadding.Parent = Main
-    MainPadding.PaddingBottom = UDim.new(0, 12)
+    
     return Window
 end
 return Library
