@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.0.0 Release")
+print("V 1.1.1 Beta")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -1187,7 +1187,10 @@ function Library:CreateWindow(title)
         end
         return TabFunctions
     end
-
+    -- Add bottom padding to Main (window) for extra space at the bottom
+    local MainPadding = Instance.new("UIPadding")
+    MainPadding.Parent = Main
+    MainPadding.PaddingBottom = UDim.new(0, 12)
     return Window
 end
 return Library
