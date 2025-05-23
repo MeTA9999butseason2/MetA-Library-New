@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.1.0 Release")
+print("V 1.1.1 Beta")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -278,6 +278,11 @@ function Library:CreateWindow(title)
         ContentList.Parent = Content
         ContentList.SortOrder = Enum.SortOrder.LayoutOrder
         ContentList.Padding = UDim.new(0, 8)
+
+        -- Add bottom padding so last asset is not hidden
+        local ContentPadding = Instance.new("UIPadding")
+        ContentPadding.Parent = Content
+        ContentPadding.PaddingBottom = UDim.new(0, 12)
 
         -- Store tab and content for switching
         table.insert(Window._tabs, Tab)
