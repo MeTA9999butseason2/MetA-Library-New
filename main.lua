@@ -5,7 +5,7 @@ if not ok or not game or not game.GetService then
 end
 
 local Library = {}
-print("V 1.2.1 Release")
+print("V 1.2.2 Release")
 
 
 -- Helper to get a safe parent for GUIs (for loadstring compatibility)
@@ -616,7 +616,9 @@ function Library:CreateWindow(title)
             toggled = not toggled
             ToggleInner.Visible = toggled
             ToggleInner.BackgroundColor3 = toggled and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(60, 60, 60)
-            callback(toggled)
+            if toggled then
+                callback(toggled)
+            end
             end)
             
             return ToggleFrame
